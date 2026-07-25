@@ -34,6 +34,8 @@ export const countries: Country[] = [
     { code: "RU", name: "Russia" },
     { code: "SA", name: "Saudi Arabia" },
 ];
+countries.sort((a, b) =>
+a.name.localeCompare(b.name));
 
 // Indian states
 const indianStates: State[] = [
