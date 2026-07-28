@@ -141,7 +141,7 @@
                  +-------+  +----------+  +----------+
                  |Express|  | ws Server|  | Supabase |
                  | REST  |  |voice-    |  | Auth+DB  |
-                 |server |  |processor |  |(PostgreSQL|
+                 |server |  |processor |  |PostgreSQL|
                  +---+---+  +----+-----+  +----------+
                      |           |
                      |      gRPC streaming

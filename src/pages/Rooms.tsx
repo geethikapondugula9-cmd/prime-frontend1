@@ -25,6 +25,8 @@ const Rooms = () => {
 
   const [roomId, setRoomId] = useState("");
   const [language, setLanguage] = useState("en");
+  const [createVoice, setCreateVoice] = useState("male");
+  const [joinVoice, setJoinVoice] = useState("male");
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
 
@@ -148,7 +150,7 @@ const Rooms = () => {
       // Store username BEFORE calling joinRoom so API uses it
       sessionStorage.setItem("meetingUsername", username.trim() || "User");
 
-      const result = await joinRoom(roomId.trim(), language);
+      const result = await joinRoom(roomId.trim(), language, joinVoice);
 
       if (!result.success) {
         throw new Error(result.message || "Failed to join room");
@@ -247,6 +249,18 @@ const Rooms = () => {
                       <option value="ko">Korean</option>
                       <option value="ar">Arabic</option>
                       <option value="ru">Russian</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Your Voice</Label>
+
+                    <select
+                      className="w-full bg-background border p-2 rounded-md"
+                      value={createVoice}
+                      onChange={(e) => setCreateVoice(e.target.value)}
+                    >
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
                     </select>
                   </div>
 
@@ -375,6 +389,18 @@ const Rooms = () => {
                       <option value="ko">Korean</option>
                       <option value="ar">Arabic</option>
                       <option value="ru">Russian</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Your Voice</Label>
+
+                    <select
+                      className="w-full bg-background border p-2 rounded-md"
+                      value={joinVoice}
+                      onChange={(e) => setJoinVoice(e.target.value)}
+                    >
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
                     </select>
                   </div>
 

@@ -16,6 +16,7 @@ import { Globe, Users } from "lucide-react";
 import ParticipantTile from "@/components/call/ParticipantTile";
 import ControlBar from "@/components/call/ControlBar";
 import RightPanel from "@/components/call/RightPanel";
+import MeetingChatPanel, { type ChatMessage } from "@/components/call/MeetingChatPanel";
 
 const ROOMINFO_POLL = 2000;
 
@@ -26,13 +27,15 @@ export default function Meeting() {
 
   const role = (localStorage.getItem("role") || "caller") as "caller" | "receiver";
   const myLanguage = localStorage.getItem("myLanguage") || "en";
+  const myVoice = localStorage.getItem("myVoice") || "male";
   // Use sessionStorage first (set during room creation/join), then Supabase username, then fallback
   const myName = sessionStorage.getItem("meetingUsername") || username || "You";
 
   // UI state
   const [status, setStatus] = useState("Click Start to Join");
   const [started, setStarted] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768); // Open by default on md screens
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isTranslationOpen, setIsTranslationOpen] = useState(window.innerWidth >= 768);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [isTranslationOn, setIsTranslationOn] = useState(true);
 
@@ -51,13 +54,17 @@ export default function Meeting() {
     transcripts,
     interimText,
     partnerInterimText,
+    chatMessages,
+    isChatSending,
     connect,
     disconnect,
     toggleMute,
+    sendChatMessage,
   } = useWebSocket({
     roomId: roomId || "",
     userType: role,
     myLanguage,
+    myVoice,
     myName,
     isSpeakerOn,
     onPartnerJoined: (name, language) => {
@@ -128,11 +135,11 @@ export default function Meeting() {
   // Join room as receiver
   useEffect(() => {
     if (started && role === "receiver" && roomId) {
-      joinRoom(roomId, myLanguage)
+      joinRoom(roomId, myLanguage, myVoice)
         .then(() => console.log("Receiver joined room successfully"))
         .catch((err) => console.error("joinRoom failed:", err));
     }
-  }, [started, role, roomId, myLanguage]);
+  }, [started, role, roomId, myLanguage, myVoice]);
 
   // Start meeting
   const startMeeting = () => {
@@ -162,6 +169,29 @@ export default function Meeting() {
       navigate("/rooms");
     }
   };
+
+  const toggleChatPanel = () => {
+    setIsChatOpen((prev) => {
+      const next = !prev;
+      if (next) setIsTranslationOpen(false);
+      return next;
+    });
+  };
+
+  const toggleTranslationPanel = () => {
+    setIsTranslationOpen((prev) => {
+      const next = !prev;
+      if (next) setIsChatOpen(false);
+      return next;
+    });
+  };
+
+  const closePanels = () => {
+    setIsChatOpen(false);
+    setIsTranslationOpen(false);
+  };
+
+  const isSidebarOpen = isChatOpen || isTranslationOpen;
 
   // Toggle speaker
   const toggleSpeaker = () => {
@@ -260,7 +290,7 @@ export default function Meeting() {
           <Badge className={isConnected ? "bg-green-600" : "bg-slate-800"}>
             {status}
           </Badge>
-          <Button variant="ghost" onClick={() => setSidebarOpen((s) => !s)} className="text-slate-200">
+          <Button variant="ghost" onClick={toggleTranslationPanel} className="text-slate-200">
             <Users />
           </Button>
         </div>
@@ -268,8 +298,8 @@ export default function Meeting() {
 
       {/* Main */}
       <div className="flex flex-1 overflow-hidden relative">
-        <main className="flex-1 p-2 sm:p-4 overflow-hidden flex flex-col pb-24">
-          <div className="flex-1 w-full max-w-[1400px] mx-auto flex flex-col lg:flex-row gap-2 lg:gap-4 justify-center items-stretch min-h-0">
+        <main className="flex-1 p-2 sm:p-4 overflow-hidden flex flex-col">
+          <div className="flex-1 w-full max-w-[1400px] mx-auto flex flex-col lg:flex-row gap-2 lg:gap-4 justify-center items-stretch min-h-0 pb-24">
             {participantsToRender.length === 0 ? (
               <div className="text-slate-400 flex items-center justify-center w-full">Waiting for participants...</div>
             ) : (
@@ -320,13 +350,32 @@ export default function Meeting() {
               Waiting for partner to join…
             </div>
           )}
+
+          {/* Floating control bar */}
+          <div className="fixed left-0 right-0 bottom-6 flex justify-center pointer-events-none">
+            <div className="pointer-events-auto bg-slate-800/80 backdrop-blur rounded-3xl px-6 py-3 flex items-center gap-6 shadow-2xl border border-slate-700">
+              <ControlBar
+                isAudioOn={isAudioOn}
+                isSpeakerOn={isSpeakerOn}
+                isChatOpen={isChatOpen}
+                isTranslationOpen={isTranslationOpen}
+                isVideoOn={isVideoOn}
+                onToggleMute={toggleMute}
+                onToggleSpeaker={toggleSpeaker}
+                onToggleChat={toggleChatPanel}
+                onToggleTranslation={toggleTranslationPanel}
+                onToggleVideo={toggleVideo}
+                onEndCall={endCall}
+              />
+            </div>
+          </div>
         </main>
 
         {/* Backdrop for mobile */}
-        {sidebarOpen && (
+        {isSidebarOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
+            onClick={closePanels}
           />
         )}
 
@@ -338,34 +387,31 @@ export default function Meeting() {
             max-h-screen lg:max-h-full
             border-l border-slate-800 bg-slate-900 
             transition-transform duration-300 ease-in-out
-            ${sidebarOpen ? "translate-x-0" : "translate-x-full"}
+            ${isSidebarOpen ? "translate-x-0" : "translate-x-full"}
           `}
         >
-          <RightPanel
-            transcripts={formattedTranscripts}
-            onClose={() => setSidebarOpen(false)}
-            isTranslationOn={isTranslationOn}
-            toggleTranslation={() => setIsTranslationOn((s) => !s)}
-          />
+          {isChatOpen ? (
+            <MeetingChatPanel
+              messages={chatMessages as ChatMessage[]}
+              onClose={closePanels}
+              onSendMessage={(message) => sendChatMessage(message)}
+              isSending={isChatSending}
+              myLanguage={myLanguage}
+              myName={myName}
+              partnerName={partnerName}
+            />
+          ) : (
+            <RightPanel
+              transcripts={formattedTranscripts}
+              onClose={closePanels}
+              isTranslationOn={isTranslationOn}
+              toggleTranslation={() => setIsTranslationOn((s) => !s)}
+            />
+          )}
         </aside>
       </div>
 
-      {/* Floating control bar */}
-      <div className="fixed left-0 right-0 bottom-6 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto bg-slate-800/80 backdrop-blur rounded-3xl px-6 py-3 flex items-center gap-6 shadow-2xl border border-slate-700">
-          <ControlBar
-            isAudioOn={isAudioOn}
-            isSpeakerOn={isSpeakerOn}
-            isChatOpen={sidebarOpen}
-            isVideoOn={isVideoOn}
-            onToggleMute={toggleMute}
-            onToggleSpeaker={toggleSpeaker}
-            onToggleChat={() => setSidebarOpen((s) => !s)}
-            onToggleVideo={toggleVideo}
-            onEndCall={endCall}
-          />
-        </div>
-      </div>
+
     </div>
   );
 }
