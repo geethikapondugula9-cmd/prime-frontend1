@@ -25,6 +25,8 @@ const Rooms = () => {
 
   const [roomId, setRoomId] = useState("");
   const [language, setLanguage] = useState("en");
+  const [createVoice, setCreateVoice] = useState("male");
+  const [joinVoice, setJoinVoice] = useState("male");
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
 
@@ -249,6 +251,18 @@ const Rooms = () => {
                       <option value="ru">Russian</option>
                     </select>
                   </div>
+                  <div className="space-y-2">
+                    <Label>Your Voice</Label>
+
+                    <select
+                      className="w-full bg-background border p-2 rounded-md"
+                      value={createVoice}
+                      onChange={(e) => setCreateVoice(e.target.value)}
+                    >
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                    </select>
+                  </div>
 
                   <Button
                     className="w-full shadow-primary"
@@ -375,6 +389,18 @@ const Rooms = () => {
                       <option value="ko">Korean</option>
                       <option value="ar">Arabic</option>
                       <option value="ru">Russian</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Your Voice</Label>
+
+                    <select
+                      className="w-full bg-background border p-2 rounded-md"
+                      value={joinVoice}
+                      onChange={(e) => setJoinVoice(e.target.value)}
+                    >
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
                     </select>
                   </div>
 

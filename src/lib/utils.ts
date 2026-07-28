@@ -71,10 +71,10 @@ export function createRoom(language: string) {
 }
 
 // Join an existing room
-export function joinRoom(roomId: string, language: string) {
+export function joinRoom(roomId: string, language: string, voice: string) {
   // Get username from sessionStorage (set when joining room) or fallback
   const participantName = sessionStorage.getItem("meetingUsername") || "User";
-  return apiPost("/join-room", { roomId, participantLanguage: language, participantName });
+  return apiPost("/join-room", { roomId, participantLanguage: language, participantVoice: voice, participantName });
 }
 
 // Get room info

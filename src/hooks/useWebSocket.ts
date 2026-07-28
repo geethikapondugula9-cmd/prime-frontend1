@@ -18,6 +18,7 @@ interface UseWebSocketProps {
     roomId: string;
     userType: "caller" | "receiver";
     myLanguage: string;
+    myVoice: string;
     myName: string;
     onPartnerJoined?: (name: string, language: string) => void;
     onPartnerLeft?: () => void;
@@ -28,6 +29,7 @@ export function useWebSocket({
     roomId,
     userType,
     myLanguage,
+    myVoice,
     myName,
     isSpeakerOn = true,
     onPartnerJoined,
@@ -327,6 +329,7 @@ export function useWebSocket({
                     roomId,
                     userType,
                     myLanguage,
+                    myVoice,
                     myName,
                 })
             );

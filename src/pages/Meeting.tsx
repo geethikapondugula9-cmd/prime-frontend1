@@ -58,6 +58,7 @@ export default function Meeting() {
     roomId: roomId || "",
     userType: role,
     myLanguage,
+    myVoice,
     myName,
     isSpeakerOn,
     onPartnerJoined: (name, language) => {
@@ -128,11 +129,11 @@ export default function Meeting() {
   // Join room as receiver
   useEffect(() => {
     if (started && role === "receiver" && roomId) {
-      joinRoom(roomId, myLanguage)
+      joinRoom(roomId, myLanguage, myVoice)
         .then(() => console.log("Receiver joined room successfully"))
         .catch((err) => console.error("joinRoom failed:", err));
     }
-  }, [started, role, roomId, myLanguage]);
+  }, [started, role, roomId, myLanguage, myVoice]);
 
   // Start meeting
   const startMeeting = () => {

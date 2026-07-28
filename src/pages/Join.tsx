@@ -26,6 +26,7 @@ const Join = () => {
     const { username, setUsername } = useUsername();
 
     const [language, setLanguage] = useState("en");
+    const [voice, setVoice] = useState("male");
     const [isJoining, setIsJoining] = useState(false);
 
     const handleJoinRoom = async () => {
@@ -53,7 +54,7 @@ const Join = () => {
             // Store username BEFORE calling joinRoom so API uses it
             sessionStorage.setItem("meetingUsername", username.trim() || "User");
 
-            const result = await joinRoom(roomId, language);
+            const result = await joinRoom(roomId, language, voice);
 
             if (!result.success) {
                 throw new Error(result.message || "Failed to join room");
@@ -123,6 +124,18 @@ const Join = () => {
                                 <option value="ko">Korean</option>
                                 <option value="ar">Arabic</option>
                                 <option value="ru">Russian</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Your Voice</Label>
+
+                            <select
+                                className="w-full bg-background border p-2 rounded-md"
+                                value={voice}
+                                onChange={(e) => setVoice(e.target.value)}
+                            >
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
                             </select>
                         </div>
 
