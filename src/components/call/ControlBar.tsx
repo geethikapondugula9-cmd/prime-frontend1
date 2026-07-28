@@ -1,26 +1,30 @@
 // src/components/call/ControlBar.tsx
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Phone, Volume2, VolumeX, MessageSquare, Video, VideoOff } from "lucide-react";
+import { Mic, MicOff, Phone, Volume2, VolumeX, MessageSquare, Globe, Video, VideoOff } from "lucide-react";
 
 export default function ControlBar({
   isAudioOn,
   isSpeakerOn,
   isChatOpen,
+  isTranslationOpen,
   isVideoOn = true,
   onToggleMute,
   onToggleSpeaker,
   onToggleChat,
+  onToggleTranslation,
   onToggleVideo,
   onEndCall,
 }: {
   isAudioOn: boolean;
   isSpeakerOn: boolean;
   isChatOpen?: boolean;
+  isTranslationOpen?: boolean;
   isVideoOn?: boolean;
   onToggleMute: () => void;
   onToggleSpeaker: () => void;
   onToggleChat?: () => void;
+  onToggleTranslation?: () => void;
   onToggleVideo?: () => void;
   onEndCall: () => void;
 }) {
@@ -52,6 +56,14 @@ export default function ControlBar({
           title="Toggle Chat"
         >
           <MessageSquare />
+        </Button>
+        <Button
+          variant={isTranslationOpen ? "secondary" : "ghost"}
+          onClick={onToggleTranslation}
+          className="rounded-full px-3 py-2"
+          title="Toggle Translation"
+        >
+          <Globe />
         </Button>
       </div>
     </>

@@ -150,7 +150,7 @@ const Rooms = () => {
       // Store username BEFORE calling joinRoom so API uses it
       sessionStorage.setItem("meetingUsername", username.trim() || "User");
 
-      const result = await joinRoom(roomId.trim(), language);
+      const result = await joinRoom(roomId.trim(), language, joinVoice);
 
       if (!result.success) {
         throw new Error(result.message || "Failed to join room");

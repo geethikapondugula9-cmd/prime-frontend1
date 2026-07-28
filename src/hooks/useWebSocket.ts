@@ -3,6 +3,7 @@
 
 import { useRef, useState, useEffect, useCallback } from "react";
 import { BASE_URL } from "@/lib/utils";
+import type { ChatMessagePayload } from "@/components/call/chatTypes";
 
 interface TranscriptItem {
     id: string;
@@ -46,6 +47,8 @@ export function useWebSocket({
     const [transcripts, setTranscripts] = useState<TranscriptItem[]>([]);
     const [interimText, setInterimText] = useState<string>("");
     const [partnerInterimText, setPartnerInterimText] = useState<string>("");
+    const [chatMessages, setChatMessages] = useState<ChatMessagePayload[]>([]);
+    const [isChatSending, setIsChatSending] = useState(false);
 
     // Refs
     const wsRef = useRef<WebSocket | null>(null);
@@ -56,6 +59,8 @@ export function useWebSocket({
     const sendIntervalRef = useRef<number | null>(null);
     const meterRafRef = useRef<number | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
+    const playbackContextRef = useRef<AudioContext | null>(null);
+    const nextStartTimeRef = useRef<number>(0);
 
     // Audio playback queue
     const audioQueueRef = useRef<string[]>([]);
@@ -81,6 +86,44 @@ export function useWebSocket({
         return `${wsProtocol}//${url.host}/audio-stream`;
     }, []);
 
+    const playDirectAudioChunk = useCallback((base64Audio: string) => {
+        if (!base64Audio) return;
+
+        if (!playbackContextRef.current) {
+            playbackContextRef.current = new AudioContext({ sampleRate: 16000 });
+        }
+
+        const ctx = playbackContextRef.current;
+        if (!ctx) return;
+
+        if (ctx.state === "suspended") {
+            ctx.resume().catch(() => undefined);
+        }
+
+        const binary = atob(base64Audio);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+
+        const int16 = new Int16Array(bytes.buffer);
+        const float32 = new Float32Array(int16.length);
+        for (let i = 0; i < int16.length; i++) {
+            float32[i] = int16[i] / (int16[i] < 0 ? 0x8000 : 0x7fff);
+        }
+
+        const audioBuffer = ctx.createBuffer(1, float32.length, 16000);
+        audioBuffer.copyToChannel(float32, 0);
+
+        const source = ctx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(ctx.destination);
+
+        const startAt = Math.max(ctx.currentTime, nextStartTimeRef.current);
+        source.start(startAt);
+        nextStartTimeRef.current = startAt + audioBuffer.duration;
+    }, []);
+
     // Process audio queue
     const processAudioQueue = useCallback(async () => {
         if (isPlayingRef.current || audioQueueRef.current.length === 0) return;
@@ -103,19 +146,19 @@ export function useWebSocket({
                     const audioBuffer = await audioContextRef.current.decodeAudioData(bufferCopy);
                     const source = audioContextRef.current.createBufferSource();
                     source.buffer = audioBuffer;
-                    
+
                     // Create GainNode for volume control (speaker off)
                     const gainNode = audioContextRef.current.createGain();
                     gainNode.gain.value = isSpeakerOnRef.current ? 1 : 0;
-                    
+
                     source.connect(gainNode);
                     gainNode.connect(audioContextRef.current.destination);
-                    
+
                     source.onended = () => {
                         isPlayingRef.current = false;
                         processAudioQueue();
                     };
-                    
+
                     source.start(0);
                     console.log("🔊 Playing translated audio via AudioContext");
                     return; // Successfully played using Web Audio API
@@ -194,6 +237,33 @@ export function useWebSocket({
                         setTranscripts((prev) => [...prev, newTranscript]);
                         break;
 
+                    case "chat:history":
+                        if (Array.isArray(data.messages)) {
+                            setChatMessages(data.messages as ChatMessagePayload[]);
+                        }
+                        break;
+
+                    case "chat:receive":
+                        console.log(" Received chat:", data);
+                        if (data.message) {
+                            const incomingMessage = data.message as ChatMessagePayload;
+                            setChatMessages((prev) => {
+                                if (prev.some((item) => item.id === incomingMessage.id)) {
+                                    return prev;
+                                }
+                                return [...prev, incomingMessage];
+                            });
+                            if (incomingMessage.senderId === `${roomId}-${userType}`) {
+                                setIsChatSending(false);
+                                console.log("isChatSending set to false");
+                            }
+                        }
+                        break;
+
+                    case "audio_direct":
+                        playDirectAudioChunk(data.audio);
+                        break;
+
                     case "audio_playback":
                         audioQueueRef.current.push(data.audio);
                         processAudioQueue();
@@ -207,7 +277,7 @@ export function useWebSocket({
                 console.error("Error parsing message:", e);
             }
         },
-        [onPartnerJoined, onPartnerLeft, processAudioQueue]
+        [onPartnerJoined, onPartnerLeft, playDirectAudioChunk, processAudioQueue, roomId, userType]
     );
 
     // Start audio capture
@@ -251,6 +321,7 @@ export function useWebSocket({
             processorRef.current = processor;
 
             processor.onaudioprocess = (e) => {
+                console.log("Audio chunk received");
                 if (!isAudioOnRef.current) return;
 
                 const inputData = e.inputBuffer.getChannelData(0);
@@ -352,6 +423,29 @@ export function useWebSocket({
         };
     }, [roomId, userType, myLanguage, myName, getWSUrl, handleMessage, startAudioCapture]);
 
+    const sendChatMessage = useCallback((message: string) => {
+        const ws = wsRef.current;
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            setStatus("Connection not ready");
+            return false;
+        }
+
+        const payload = {
+            event: "chat:send",
+            roomId,
+            messageId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            senderId: `${roomId}-${userType}`,
+            senderName: myName,
+            message,
+            senderLanguage: myLanguage,
+        };
+
+        ws.send(JSON.stringify(payload));
+        console.log("Sent Chat:", payload);;
+        setIsChatSending(true);
+        return true;
+    }, [roomId, userType, myLanguage, myName]);
+
     // Disconnect
     const disconnect = useCallback(() => {
         // Stop audio
@@ -371,6 +465,11 @@ export function useWebSocket({
             audioContextRef.current.close();
             audioContextRef.current = null;
         }
+        if (playbackContextRef.current) {
+            playbackContextRef.current.close();
+            playbackContextRef.current = null;
+        }
+        nextStartTimeRef.current = 0;
         if (mediaStreamRef.current) {
             mediaStreamRef.current.getTracks().forEach((t) => t.stop());
             mediaStreamRef.current = null;
@@ -431,11 +530,14 @@ export function useWebSocket({
         transcripts,
         interimText,
         partnerInterimText,
+        chatMessages,
+        isChatSending,
 
         // Actions
         connect,
         disconnect,
         toggleMute,
+        sendChatMessage,
         setIsAudioOn,
     };
 }
