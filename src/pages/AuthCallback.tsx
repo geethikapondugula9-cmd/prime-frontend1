@@ -29,7 +29,7 @@ const AuthCallback = () => {
                     JSON.stringify(session.user)
                 );
 
-                navigate("/rooms");
+                navigate("/", {replace:true});
             } else {
                 console.log("❌ No session found");
                 navigate("/auth");
