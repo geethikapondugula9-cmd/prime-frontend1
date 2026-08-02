@@ -99,9 +99,15 @@ export default function Meeting() {
 
   // Fetch room info
   const fetchRoomInfo = useCallback(async () => {
+    console.log("================================");
+    console.log("🚀 fetchRoomInfo CALLED");
+    console.log("Room ID:", roomId);
+    console.log("BASE_URL:", BASE_URL);
+    console.log("================================");
     try {
       if (!roomId) return;
-
+      console.log("BASE_URL =", BASE_URL);
+      console.log("Fetching =", `${BASE_URL}/room-info?roomId=${roomId}`);
       const res = await fetch(`${BASE_URL}/room-info?roomId=${roomId}`);
 
       if (res.status === 404) {
@@ -126,6 +132,9 @@ export default function Meeting() {
 
   // Poll room info
   useEffect(() => {
+    console.log("================================");
+    console.log("started =", started);
+    console.log("================================");
     if (!started) return;
     fetchRoomInfo();
     const id = window.setInterval(fetchRoomInfo, ROOMINFO_POLL);

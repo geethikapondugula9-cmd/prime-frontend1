@@ -15,7 +15,7 @@ export function cn(...inputs: ClassValue[]) {
 // 🔹 BACKEND BASE URL
 // Production URL hardcoded for Vercel deployment
 // ---------------------------------------------
-export const BASE_URL = import.meta.env.VITE_API_URL || "https://live-translation-backend.azurewebsites.net";
+export const BASE_URL = import.meta.env.VITE_API_URL || "";
 console.log("BASE_URL:", BASE_URL);
 
 // ---------------------------------------------
@@ -35,6 +35,7 @@ export function getWebSocketURL(): string {
 export async function apiGet(endpoint: string) {
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     method: "GET",
+    headers: { "ngrok-skip-browser-warning": "true" },
   });
 
   if (!res.ok) {
@@ -48,7 +49,7 @@ export async function apiGet(endpoint: string) {
 export async function apiPost(endpoint: string, data: any) {
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
     body: JSON.stringify(data),
   });
 
@@ -58,7 +59,6 @@ export async function apiPost(endpoint: string, data: any) {
   }
   return res.json();
 }
-
 // ---------------------------------------------
 // 🔹 ROOM APIs
 // ---------------------------------------------
