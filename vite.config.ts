@@ -8,6 +8,15 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "0.0.0.0",
     port: 5173,
+    proxy: {
+      "/create-room": { target: "http://localhost:8080", changeOrigin: true },
+      "/join-room": { target: "http://localhost:8080", changeOrigin: true },
+      "/leave-room": { target: "http://localhost:8080", changeOrigin: true },
+      "/room-info": { target: "http://localhost:8080", changeOrigin: true },
+      "/api": { target: "http://localhost:8080", changeOrigin: true },
+      "/health": { target: "http://localhost:8080", changeOrigin: true },
+      "/audio-stream": { target: "ws://localhost:8080", ws: true, changeOrigin: true },
+    }
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

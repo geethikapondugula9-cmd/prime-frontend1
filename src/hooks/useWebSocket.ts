@@ -413,6 +413,9 @@ export function useWebSocket({
 
         ws.onclose = () => {
             console.log("❌ WebSocket closed");
+            console.log("Close Code:", event.code);
+            console.log("Reason:", event.reason);
+            console.log("Was Clean:", event.wasClean);
             setStatus("Disconnected");
             setIsConnected(false);
         };

@@ -48,7 +48,7 @@ export function useTwilioVideo({
 
                 const response = await fetch(`${BASE_URL}/api/video-token`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
                     body: JSON.stringify({ identity, roomName: roomId }),
                 });
 
@@ -263,13 +263,13 @@ export function useTwilioVideo({
         if (isVideoOn && localTrackRef.current) {
             console.log("📹 Turning off video...");
             const track = localTrackRef.current;
-            
+
             // Unpublish from room so remote participants see us turn off
             roomRef.current.localParticipant.unpublishTrack(track);
-            
+
             // Stop hardware capture (turns off camera light)
             track.stop();
-            
+
             localTrackRef.current = null;
             setLocalVideoTrack(null);
             setIsVideoOn(false);
@@ -282,12 +282,12 @@ export function useTwilioVideo({
                     height: { ideal: 480 },
                     frameRate: { ideal: 24 },
                 });
-                
+
                 // Publish to room so remote participants can see us again
                 if (roomRef.current) {
                     await roomRef.current.localParticipant.publishTrack(newTrack);
                 }
-                
+
                 localTrackRef.current = newTrack;
                 setLocalVideoTrack(newTrack);
                 setIsVideoOn(true);
