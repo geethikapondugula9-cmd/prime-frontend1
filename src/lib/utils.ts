@@ -13,18 +13,22 @@ export function cn(...inputs: ClassValue[]) {
 
 // ---------------------------------------------
 // 🔹 BACKEND BASE URL
-// Production URL hardcoded for Vercel deployment
+// Use a relative git checkout in development so Vite proxy can forward requests to ngrok.
+// In production, use VITE_API_URL or fallback to the ngrok host.
 // ---------------------------------------------
-export const BASE_URL = import.meta.env.VITE_API_URL || "";
-console.log("BASE_URL:", BASE_URL);
+export const BASE_URL = import.meta.env.DEV
+  ? ""
+  : import.meta.env.VITE_API_URL || "https://matrimony-unguarded-felt-tip.ngrok-free.dev";
+console.log("BASE_URL:", BASE_URL || "[relative root]");
 
 // ---------------------------------------------
 // 🔹 WebSocket URL Helper
 // ---------------------------------------------
 export function getWebSocketURL(): string {
-  const url = new URL(BASE_URL);
+  const url = new URL(BASE_URL || window.location.origin);
   const wsProtocol = url.protocol === "https:" ? "wss:" : "ws:";
-  return `${wsProtocol}//${url.host}/audio-stream`;
+  const basePath = url.pathname.replace(/\/$/, "");
+  return `${wsProtocol}//${url.host}${basePath}/audio-stream`;
 }
 
 // ---------------------------------------------
@@ -35,9 +39,11 @@ export function getWebSocketURL(): string {
 export async function apiGet(endpoint: string) {
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     method: "GET",
-    headers: { "ngrok-skip-browser-warning": "true" },
+    headers: {
+      "ngrok-skip-browser-warning": "true",
+      "Accept": "application/json",
+    },
   });
-
   if (!res.ok) {
     console.error(`GET ${endpoint} failed`, await res.text());
     throw new Error(`GET ${endpoint} failed`);
@@ -49,7 +55,11 @@ export async function apiGet(endpoint: string) {
 export async function apiPost(endpoint: string, data: any) {
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "ngrok-skip-browser-warning": "true",
+    },
     body: JSON.stringify(data),
   });
 

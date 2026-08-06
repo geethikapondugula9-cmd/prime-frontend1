@@ -297,7 +297,7 @@ Backend (twil/):
 
 Deploy:
   Frontend -> Vercel (auto from GitHub)
-  Backend  -> Render or EC2
+  Backend  -> azure
   See: .agent/workflows/deploy-ec2.md
 
 

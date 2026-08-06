@@ -76,6 +76,7 @@ export default function Meeting() {
       setPartnerJoined(false);
     },
   });
+  console.log("WebSocket connect function:", connect);
 
   // Twilio Video hook (for video only - audio is handled by WebSocket)
   const {
@@ -108,7 +109,19 @@ export default function Meeting() {
       if (!roomId) return;
       console.log("BASE_URL =", BASE_URL);
       console.log("Fetching =", `${BASE_URL}/room-info?roomId=${roomId}`);
-      const res = await fetch(`${BASE_URL}/room-info?roomId=${roomId}`);
+      const url = `${BASE_URL}/room-info?roomId=${roomId}`;
+
+      console.log("Fetching:", url);
+
+      const res = await fetch(url, {
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+          "Accept": "application/json",
+        },
+      });
+
+      console.log("Status:", res.status);
+      console.log("Content-Type:", res.headers.get("content-type"));
 
       if (res.status === 404) {
         endCall();
@@ -151,11 +164,19 @@ export default function Meeting() {
   }, [started, role, roomId, myLanguage, myVoice]);
 
   // Start meeting
-  const startMeeting = () => {
+  const startMeeting = async () => {
+    console.log("🚀 startMeeting() called");
+
     setStarted(true);
+
+    console.log("📞 Calling connect()");
+    await connect();
+    console.log("📞 connect() returned");
+
+    console.log("📹 Calling connectVideo()");
+    connectVideo();
+
     fetchRoomInfo();
-    connect(); // Audio/translation WebSocket
-    connectVideo(); // Twilio Video
   };
 
   // End call
@@ -262,15 +283,45 @@ export default function Meeting() {
 
   // Pre-join view
   if (!started) {
+    console.log("🟢 Rendering PRE-JOIN screen");
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white p-6">
         <div className="max-w-xl w-full text-center space-y-6">
-          <h1 className="text-3xl font-semibold">Join Meeting</h1>
+          <h1 className="text-3xl font-semibold text-white">
+            Join Meeting
+          </h1>
           <p className="text-slate-300">
             Room: {roomId} • {role} • {myLanguage}
           </p>
           <div className="flex justify-center">
-            <Button size="lg" onClick={startMeeting}>
+            <Button
+              size="lg"
+              onClick={async () => {
+                console.log("================================");
+                console.log("BUTTON CLICKED");
+                console.log("connect =", connect);
+                console.log("connectVideo =", connectVideo);
+
+                try {
+                  console.log("Calling connect()");
+                  await connect();
+                  console.log("connect() finished");
+                } catch (e) {
+                  console.error("connect() threw:", e);
+                }
+
+                try {
+                  console.log("Calling connectVideo()");
+                  await connectVideo();
+                  console.log("connectVideo() finished");
+                } catch (e) {
+                  console.error("connectVideo() threw:", e);
+                }
+
+                setStarted(true);
+                fetchRoomInfo();
+              }}
+            >
               Start Meeting
             </Button>
           </div>
