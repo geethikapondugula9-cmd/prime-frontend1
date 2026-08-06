@@ -7,7 +7,14 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const apiTarget = env.VITE_API_URL || "https://matrimony-unguarded-felt-tip.ngrok-free.dev";
-  const wsTarget = apiTarget.replace(/^https?/, "ws");
+  const wsTarget = apiTarget.startsWith("https")
+    ? apiTarget.replace("https://", "wss://")
+    : apiTarget.replace("http://", "ws://");
+  console.log("================================");
+  console.log("VITE_API_URL =", env.VITE_API_URL);
+  console.log("apiTarget    =", apiTarget);
+  console.log("wsTarget     =", wsTarget);
+  console.log("================================");
 
   return {
     server: {

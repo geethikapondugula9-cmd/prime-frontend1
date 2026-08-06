@@ -81,9 +81,20 @@ export function useWebSocket({
 
     // Get WebSocket URL
     const getWSUrl = useCallback(() => {
-        const url = new URL(BASE_URL);
+        const base = BASE_URL || window.location.origin;
+
+        console.log("BASE_URL =", BASE_URL);
+        console.log("Using Base =", base);
+
+        const url = new URL(base);
+
         const wsProtocol = url.protocol === "https:" ? "wss:" : "ws:";
-        return `${wsProtocol}//${url.host}/audio-stream`;
+
+        const wsUrl = `${wsProtocol}//${url.host}/audio-stream`;
+
+        console.log("WebSocket URL =", wsUrl);
+
+        return wsUrl;
     }, []);
 
     const playDirectAudioChunk = useCallback((base64Audio: string) => {
@@ -282,6 +293,7 @@ export function useWebSocket({
 
     // Start audio capture
     const startAudioCapture = useCallback(async () => {
+        console.log("🎤 startAudioCapture() started");
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
@@ -294,6 +306,7 @@ export function useWebSocket({
 
             mediaStreamRef.current = stream;
             const audioContext = new AudioContext({ sampleRate: 16000 });
+            console.log("🎤 AudioContext Sample Rate:", audioContext.sampleRate);
             audioContextRef.current = audioContext;
 
             const source = audioContext.createMediaStreamSource(stream);
@@ -378,6 +391,7 @@ export function useWebSocket({
 
     // Connect WebSocket
     const connect = useCallback(async () => {
+        console.log("🔥 WebSocket connect() ENTERED");
         if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
         setStatus("Connecting...");
@@ -406,16 +420,18 @@ export function useWebSocket({
             );
 
             // Start audio capture
+            console.log("➡️ About to call startAudioCapture()");
             startAudioCapture();
         };
 
         ws.onmessage = handleMessage;
 
-        ws.onclose = () => {
+        ws.onclose = (event: CloseEvent) => {
             console.log("❌ WebSocket closed");
             console.log("Close Code:", event.code);
             console.log("Reason:", event.reason);
             console.log("Was Clean:", event.wasClean);
+
             setStatus("Disconnected");
             setIsConnected(false);
         };
