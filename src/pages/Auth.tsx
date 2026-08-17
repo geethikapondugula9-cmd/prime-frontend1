@@ -565,6 +565,10 @@ const Auth = () => {
           onChange={(e) => setFirstName(e.target.value)}
           required
         />
+        {/* Validation guidance goes HERE */}
+        <p className="text-sm text-muted-foreground">
+          Use letters only.
+        </p>
       </div>
 
       {/* Last Name */}
@@ -578,6 +582,10 @@ const Auth = () => {
           onChange={(e) => setLastName(e.target.value)}
           required
         />
+        {/* Validation guidance goes HERE */}
+        <p className="text-sm text-muted-foreground">
+          Use letters only.
+        </p>
       </div>
 
       {/* Username */}
@@ -593,6 +601,9 @@ const Auth = () => {
           minLength={6}
           maxLength={14}
         />
+        {/* Validation guidance goes HERE */}
+        <p className="text-sm text-muted-foreground">
+          Username can only contain letters and digits: 6-14 characters.    </p>
       </div>
 
       {/* Email */}
@@ -607,6 +618,10 @@ const Auth = () => {
           required
           maxLength={40}
         />
+        {/* Validation guidance goes HERE */}
+        <p className="text-xs text-muted-foreground">
+          Enter a valid email address (maximum 40 characters).
+        </p>
       </div>
 
       {/* Country */}
@@ -661,15 +676,18 @@ const Auth = () => {
             maxLength={14}
             className="pr-10"
           />
-
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center text-gray-500 hover:text-gray-700"
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
+        <p className="text-xs text-muted-foreground">
+          Password must be 6–14 characters and include at least one uppercase,
+          one lowercase, one digit, and one special character (!@#$%^&*).
+        </p>
       </div>
 
       {/* Confirm Password */}
@@ -697,6 +715,10 @@ const Auth = () => {
             {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
+
+        <p className="text-xs text-muted-foreground">
+          Re-enter the same password to confirm.
+        </p>
       </div>
       <Button
         type="submit"
@@ -705,7 +727,7 @@ const Auth = () => {
       >
         Continue
       </Button>
-    </form>
+    </form >
   );
 
   // =====================================================
