@@ -264,10 +264,7 @@ export function useWebSocket({
                                 }
                                 return [...prev, incomingMessage];
                             });
-                            if (incomingMessage.senderId === `${roomId}-${userType}`) {
-                                setIsChatSending(false);
-                                console.log("isChatSending set to false");
-                            }
+                            setIsChatSending(false);
                         }
                         break;
 
@@ -443,12 +440,12 @@ export function useWebSocket({
     }, [roomId, userType, myLanguage, myName, getWSUrl, handleMessage, startAudioCapture]);
 
     const sendChatMessage = useCallback((message: string) => {
+        console.log("🚨 SEND CHAT FUNCTION CALLED");
         const ws = wsRef.current;
         if (!ws || ws.readyState !== WebSocket.OPEN) {
             setStatus("Connection not ready");
             return false;
         }
-
         const payload = {
             event: "chat:send",
             roomId,
