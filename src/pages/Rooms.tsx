@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +17,8 @@ import { useUsername } from "@/hooks/useUsername";
 import { createRoom, joinRoom } from "@/lib/utils";
 import Footer from "@/components/Footer";
 import PremiumBackground from "@/components/PremiumBackground";
+import ProfileMenu from "@/components/ProfileMenu";
+import ProfileDrawer from "@/components/ProfileDrawer";
 
 const Rooms = () => {
   const navigate = useNavigate();
@@ -29,11 +31,21 @@ const Rooms = () => {
   const [joinVoice, setJoinVoice] = useState("male");
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   // New states for sharing
   const [createdRoomId, setCreatedRoomId] = useState<string | null>(null);
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+
+    getUser();
+  }, []);
 
   // ==========================================================
   // CREATE ROOM (BACKEND)
@@ -192,10 +204,25 @@ const Rooms = () => {
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/landing")}>
             <img src="/logo.png" className="w-28 sm:w-40 h-auto" alt="Logo" />
           </div>
-          <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-sm">
-            <LogOut className="w-4 h-4 sm:mr-2" />
-            <span className="hidden sm:inline">Sign Out</span>
-          </Button>
+          <div className="flex items-center gap-3">
+            {user && (
+              <ProfileMenu
+                user={user}
+                drawerOpen={drawerOpen}
+                setDrawerOpen={setDrawerOpen}
+              />
+            )}
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSignOut}
+              className="text-sm"
+            >
+              <LogOut className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sign Out</span>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -422,6 +449,14 @@ const Rooms = () => {
 
       {/* Footer */}
       <Footer />
+      {/* PROFILE DRAWER */}
+      {user && (
+        <ProfileDrawer
+          user={user}
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+        />
+      )}
     </div>
   );
 };
