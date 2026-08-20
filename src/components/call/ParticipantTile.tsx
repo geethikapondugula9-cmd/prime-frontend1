@@ -32,6 +32,9 @@ export default function ParticipantTile({
   language,
   videoTrack,
   isVideoOn = true,
+
+  // Screen Sharing Feature - Identifies when this tile is rendering a shared screen.
+  isScreenShare = false,
 }: {
   name: string;
   isLocal?: boolean;
@@ -40,6 +43,8 @@ export default function ParticipantTile({
   language?: string;
   videoTrack?: LocalVideoTrack | RemoteVideoTrack | null;
   isVideoOn?: boolean;
+  // Screen Sharing Feature - Optional flag so normal participant tiles remain unchanged.
+  isScreenShare?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -87,7 +92,10 @@ export default function ParticipantTile({
             autoPlay
             playsInline
             muted={isLocal} // Mute local video to prevent echo
-            className={`w-full h-full object-contain bg-black ${isLocal ? "scale-x-[-1]" : ""}`}
+            className={`w-full h-full ${isScreenShare
+              ? "object-contain bg-black"
+              : `object-contain bg-black ${isLocal ? "scale-x-[-1]" : ""}`
+              }`}
           />
         </div>
       )}

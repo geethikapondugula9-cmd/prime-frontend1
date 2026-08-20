@@ -82,8 +82,13 @@ export default function Meeting() {
   const {
     isConnected: isVideoConnected,
     isVideoOn,
+    // Screen Sharing Feature - Get screen sharing state and control
+    isScreenSharing,
+    toggleScreenShare,
     localVideoTrack,
     remoteVideoTrack,
+    // Screen Sharing Feature - Receive the remote participant's shared screen
+    remoteScreenTrack,
     error: videoError,
     connect: connectVideo,
     disconnect: disconnectVideo,
@@ -281,6 +286,10 @@ export default function Meeting() {
       : []),
   ];
 
+  // Screen Sharing Feature - Only the participant receiving a remote screen share
+  // switches to the expanded viewer layout. The person sharing keeps the normal layout.
+  const isViewingScreenShare = Boolean(remoteScreenTrack);
+
   // Pre-join view
   if (!started) {
     console.log("🟢 Rendering PRE-JOIN screen");
@@ -361,21 +370,84 @@ export default function Meeting() {
         <main className="flex-1 p-2 sm:p-4 overflow-hidden flex flex-col">
           <div className="flex-1 w-full max-w-[1400px] mx-auto flex flex-col lg:flex-row gap-2 lg:gap-4 justify-center items-stretch min-h-0 pb-24">
             {participantsToRender.length === 0 ? (
-              <div className="text-slate-400 flex items-center justify-center w-full">Waiting for participants...</div>
-            ) : (
-              participantsToRender.map((p) => (
-                <div key={p.id} className="flex-1 w-full min-h-0 min-w-0">
-                  <ParticipantTile
-                    name={p.name}
-                    isLocal={p.isLocal}
-                    muted={p.muted}
-                    level={p.level}
-                    language={p.language || undefined}
-                    videoTrack={p.videoTrack}
-                    isVideoOn={p.isVideoOn}
-                  />
+              <div className="text-slate-400 flex items-center justify-center w-full">
+                Waiting for participants...
+              </div>
+            ) : isViewingScreenShare ? (
+              /*
+               * Screen Sharing Feature - Viewer layout.
+               * Only the participant receiving the remote screen share sees this layout.
+               * The sharer's own layout remains unchanged because remoteScreenTrack is absent there.
+               */
+              <div className="flex flex-1 min-h-0 min-w-0 gap-2 lg:gap-3">
+
+                {/* Screen Sharing Feature - Keep both participants visible
+        in a compact vertical column while viewing the shared screen. */}
+                <div className="w-[28%] max-w-[280px] min-w-[180px] flex flex-col gap-2 min-h-0">
+
+                  {participantsToRender.map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex-1 min-h-0 min-w-0"
+                    >
+                      <ParticipantTile
+                        name={p.name}
+                        isLocal={p.isLocal}
+                        muted={p.muted}
+                        level={p.level}
+                        language={p.language || undefined}
+                        videoTrack={p.videoTrack}
+                        isVideoOn={p.isVideoOn}
+                      />
+                    </div>
+                  ))}
+
                 </div>
-              ))
+
+                {/* Screen Sharing Feature - Give the received screen the
+        primary viewing area without changing the translation sidebar. */}
+                <div className="flex-1 min-w-0 min-h-0 overflow-hidden rounded-xl">
+
+                  <ParticipantTile
+                    name="Shared Screen"
+                    isLocal={false}
+                    muted={true}
+                    level={0}
+                    language={undefined}
+                    videoTrack={remoteScreenTrack}
+                    isVideoOn={true}
+
+                    // Screen Sharing Feature - Render the remote shared screen as a dedicated viewer tile.
+                    isScreenShare={true}
+                  />
+
+                </div>
+
+              </div>
+            ) : (
+              /*
+               * Screen Sharing Feature - Normal layout.
+               * This is intentionally kept as the existing layout so the user
+               * who is sharing their screen does not get moved into viewer mode.
+               */
+              <>
+                {participantsToRender.map((p) => (
+                  <div
+                    key={p.id}
+                    className="flex-1 w-full min-h-0 min-w-0"
+                  >
+                    <ParticipantTile
+                      name={p.name}
+                      isLocal={p.isLocal}
+                      muted={p.muted}
+                      level={p.level}
+                      language={p.language || undefined}
+                      videoTrack={p.videoTrack}
+                      isVideoOn={p.isVideoOn}
+                    />
+                  </div>
+                ))}
+              </>
             )}
           </div>
 
@@ -420,6 +492,10 @@ export default function Meeting() {
                 isChatOpen={isChatOpen}
                 isTranslationOpen={isTranslationOpen}
                 isVideoOn={isVideoOn}
+
+                // Screen Sharing Feature - Pass screen sharing state and action
+                isScreenSharing={isScreenSharing}
+                onToggleScreenShare={toggleScreenShare}
                 onToggleMute={toggleMute}
                 onToggleSpeaker={toggleSpeaker}
                 onToggleChat={toggleChatPanel}
@@ -432,12 +508,14 @@ export default function Meeting() {
         </main>
 
         {/* Backdrop for mobile */}
-        {isSidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-            onClick={closePanels}
-          />
-        )}
+        {
+          isSidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+              onClick={closePanels}
+            />
+          )
+        }
 
         {/* Chat Sidebar - Fixed overlay on mobile, inline on desktop */}
         <aside
@@ -469,9 +547,9 @@ export default function Meeting() {
             />
           )}
         </aside>
-      </div>
+      </div >
 
 
-    </div>
+    </div >
   );
 }
