@@ -1,7 +1,7 @@
 // src/components/call/ControlBar.tsx
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Phone, Volume2, VolumeX, MessageSquare, Globe, Video, VideoOff } from "lucide-react";
+import { Mic, MicOff, Phone, Volume2, VolumeX, MessageSquare, Globe, Video, VideoOff, MonitorUp, MonitorOff } from "lucide-react";
 
 export default function ControlBar({
   isAudioOn,
@@ -9,6 +9,10 @@ export default function ControlBar({
   isChatOpen,
   isTranslationOpen,
   isVideoOn = true,
+
+  // Screen Sharing Feature - Receive screen sharing state and action
+  isScreenSharing = false,
+  onToggleScreenShare,
   onToggleMute,
   onToggleSpeaker,
   onToggleChat,
@@ -21,6 +25,9 @@ export default function ControlBar({
   isChatOpen?: boolean;
   isTranslationOpen?: boolean;
   isVideoOn?: boolean;
+  // Screen Sharing Feature - Screen sharing control props
+  isScreenSharing?: boolean;
+  onToggleScreenShare?: () => void;
   onToggleMute: () => void;
   onToggleSpeaker: () => void;
   onToggleChat?: () => void;
@@ -37,6 +44,22 @@ export default function ControlBar({
       {onToggleVideo && (
         <Button variant={isVideoOn ? "default" : "destructive"} onClick={onToggleVideo} className="rounded-full px-4 py-3">
           {isVideoOn ? <Video className="mr-2" /> : <VideoOff className="mr-2" />} {isVideoOn ? "Video" : "Video Off"}
+        </Button>
+      )}
+      {/* Screen Sharing Feature - Share or stop sharing the user's screen */}
+      {onToggleScreenShare && (
+        <Button
+          variant={isScreenSharing ? "secondary" : "default"}
+          onClick={onToggleScreenShare}
+          className="rounded-full px-4 py-3"
+          title={isScreenSharing ? "Stop Sharing" : "Share Screen"}
+        >
+          {isScreenSharing ? (
+            <MonitorOff className="mr-2" />
+          ) : (
+            <MonitorUp className="mr-2" />
+          )}
+          {isScreenSharing ? "Stop Sharing" : "Share Screen"}
         </Button>
       )}
 

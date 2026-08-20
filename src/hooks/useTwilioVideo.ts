@@ -29,12 +29,19 @@ export function useTwilioVideo({
     const [isConnecting, setIsConnecting] = useState(false);
     const [isVideoOn, setIsVideoOn] = useState(true);
     const [localVideoTrack, setLocalVideoTrack] = useState<LocalVideoTrack | null>(null);
+    // Screen Sharing Feature - Track whether the user is currently sharing their screen
+    const [isScreenSharing, setIsScreenSharing] = useState(false);
     const [remoteVideoTrack, setRemoteVideoTrack] = useState<RemoteVideoTrack | null>(null);
+
+    // Screen Sharing Feature - Store the remote participant's shared screen
+    const [remoteScreenTrack, setRemoteScreenTrack] = useState<RemoteVideoTrack | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     // Refs
     const roomRef = useRef<Room | null>(null);
     const localTrackRef = useRef<LocalVideoTrack | null>(null);
+    // Screen Sharing Feature - Store the active screen-share track
+    const screenTrackRef = useRef<LocalVideoTrack | null>(null);
     const retryCountRef = useRef(0);
     const MAX_RETRIES = 3;
 
@@ -79,20 +86,41 @@ export function useTwilioVideo({
         throw lastError || new Error("Failed to fetch video token after retries");
     }, [roomId, identity]);
 
-    // Handle remote participant track subscriptions
-    const handleTrackSubscribed = useCallback((track: RemoteVideoTrack | any) => {
-        if (track.kind === "video") {
-            console.log("📹 Remote video track subscribed:", track.sid);
-            setRemoteVideoTrack(track as RemoteVideoTrack);
-        }
-    }, []);
+    // Screen Sharing Feature - Handle remote camera and screen-share tracks separately
+    const handleTrackSubscribed = useCallback(
+        (track: RemoteVideoTrack | any) => {
+            if (track.kind === "video") {
+                console.log("📹 Remote video track subscribed:", track.sid);
 
-    const handleTrackUnsubscribed = useCallback((track: RemoteVideoTrack | any) => {
-        if (track.kind === "video") {
-            console.log("📹 Remote video track unsubscribed:", track.sid);
-            setRemoteVideoTrack(null);
-        }
-    }, []);
+                // Screen Sharing Feature - Identify screen-share tracks
+                if (track.name === "screen") {
+                    console.log("🖥️ Remote screen-share track subscribed:", track.sid);
+                    setRemoteScreenTrack(track as RemoteVideoTrack);
+                } else {
+                    setRemoteVideoTrack(track as RemoteVideoTrack);
+                }
+            }
+        },
+        []
+    );
+
+    // Screen Sharing Feature - Handle remote camera and screen-share track removal
+    const handleTrackUnsubscribed = useCallback(
+        (track: RemoteVideoTrack | any) => {
+            if (track.kind === "video") {
+                console.log("📹 Remote video track unsubscribed:", track.sid);
+
+                // Screen Sharing Feature - Clear the remote screen when sharing stops
+                if (track.name === "screen") {
+                    console.log("🖥️ Remote screen-share track unsubscribed:", track.sid);
+                    setRemoteScreenTrack(null);
+                } else {
+                    setRemoteVideoTrack(null);
+                }
+            }
+        },
+        []
+    );
 
     // Handle track published (for when track is published but not yet subscribed)
     const handleTrackPublished = useCallback((publication: RemoteTrackPublication) => {
@@ -299,6 +327,75 @@ export function useTwilioVideo({
         }
     }, [isVideoOn]);
 
+    // Screen Sharing Feature - Start or stop sharing the user's screen
+    const toggleScreenShare = async () => {
+        if (!roomRef.current) {
+            console.warn("⚠️ Cannot share screen: not connected to a room");
+            return;
+        }
+
+        // Stop screen sharing if it is already active
+        if (screenTrackRef.current) {
+            try {
+                const screenTrack = screenTrackRef.current;
+
+                roomRef.current.localParticipant.unpublishTrack(screenTrack);
+                screenTrack.stop();
+
+                screenTrackRef.current = null;
+                setIsScreenSharing(false);
+
+                console.log("🖥️ Screen sharing stopped");
+            } catch (error) {
+                console.error("❌ Failed to stop screen sharing:", error);
+            }
+
+            return;
+        }
+
+        // Start screen sharing
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({
+                video: true,
+            });
+
+            // Screen Sharing Feature - Create the screen-share video track
+            const screenTrack = new LocalVideoTrack(
+                stream.getVideoTracks()[0],
+                {
+                    name: "screen",
+                }
+            );
+
+            screenTrackRef.current = screenTrack;
+
+            await roomRef.current.localParticipant.publishTrack(screenTrack);
+
+            setIsScreenSharing(true);
+
+            console.log("🖥️ Screen sharing started");
+
+            // Automatically stop sharing when the browser's screen-share button is used
+            stream.getVideoTracks()[0].onended = () => {
+                if (roomRef.current && screenTrackRef.current) {
+                    roomRef.current.localParticipant.unpublishTrack(screenTrackRef.current);
+                    screenTrackRef.current.stop();
+                    screenTrackRef.current = null;
+                    setIsScreenSharing(false);
+
+                    console.log("🖥️ Screen sharing stopped by browser");
+                }
+            };
+        } catch (error: any) {
+            console.error("❌ Failed to start screen sharing:", error);
+
+            // User may simply have cancelled the browser's screen-share dialog
+            if (error?.name === "NotAllowedError") {
+                console.log("ℹ️ Screen sharing permission was cancelled");
+            }
+        }
+    };
+
     // Cleanup on unmount
     useEffect(() => {
         return () => {
@@ -311,13 +408,19 @@ export function useTwilioVideo({
         isConnected,
         isConnecting,
         isVideoOn,
+        // Screen Sharing Feature - Expose screen sharing state
+        isScreenSharing,
         localVideoTrack,
         remoteVideoTrack,
+        // Screen Sharing Feature - Expose the remote participant's shared screen
+        remoteScreenTrack,
         error,
 
         // Actions
         connect,
         disconnect,
         toggleVideo,
+        // Screen Sharing Feature - Expose screen sharing control
+        toggleScreenShare,
     };
 }
