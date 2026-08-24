@@ -127,7 +127,7 @@ const Join = () => {
                                 <option value="ru">Russian</option>
                             </select>
                         </div>
-                        <div className="space-y-2">
+                        {/* <div className="space-y-2">
                             <Label>Your Voice</Label>
 
                             <select
@@ -138,7 +138,7 @@ const Join = () => {
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
                             </select>
-                        </div>
+                        </div> */}
 
                         <Button
                             className="w-full"
