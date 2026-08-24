@@ -61,6 +61,7 @@ export function useWebSocket({
     const analyserRef = useRef<AnalyserNode | null>(null);
     const playbackContextRef = useRef<AudioContext | null>(null);
     const nextStartTimeRef = useRef<number>(0);
+    const myVoiceRef = useRef(myVoice);
 
     // Audio playback queue
     const audioQueueRef = useRef<string[]>([]);
@@ -78,6 +79,10 @@ export function useWebSocket({
     useEffect(() => {
         isSpeakerOnRef.current = isSpeakerOn;
     }, [isSpeakerOn]);
+
+    useEffect(() => {
+        myVoiceRef.current = myVoice;
+    }, [myVoice]);
 
     // Get WebSocket URL
     const getWSUrl = useCallback(() => {
@@ -404,14 +409,15 @@ export function useWebSocket({
             setStatus("Connected");
             setIsConnected(true);
 
-            // Send connection info
+            // FEATURE: voice belongs to the speaker; use the latest speaker voice in the WebSocket
+            // connection payload so the backend can map audio to the correct gendered TTS voice.
             ws.send(
                 JSON.stringify({
                     event: "connected",
                     roomId,
                     userType,
                     myLanguage,
-                    myVoice,
+                    myVoice: myVoiceRef.current,
                     myName,
                 })
             );
@@ -437,7 +443,7 @@ export function useWebSocket({
             console.error("WebSocket error:", err);
             setStatus("Connection Error");
         };
-    }, [roomId, userType, myLanguage, myName, getWSUrl, handleMessage, startAudioCapture]);
+    }, [roomId, userType, myLanguage, myName, myVoice, getWSUrl, handleMessage, startAudioCapture]);
 
     const sendChatMessage = useCallback((message: string) => {
         console.log("🚨 SEND CHAT FUNCTION CALLED");

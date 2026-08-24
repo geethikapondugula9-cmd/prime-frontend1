@@ -53,6 +53,7 @@ const Join = () => {
         try {
             // Store username BEFORE calling joinRoom so API uses it
             sessionStorage.setItem("meetingUsername", username.trim() || "User");
+            localStorage.setItem("myVoice", voice);
 
             const result = await joinRoom(roomId, language, voice);
 
