@@ -27,9 +27,15 @@ export default function Meeting() {
 
   const role = (localStorage.getItem("role") || "caller") as "caller" | "receiver";
   const myLanguage = localStorage.getItem("myLanguage") || "en";
-  const myVoice = localStorage.getItem("myVoice") || "male";
+  const [myVoice, setMyVoice] = useState(() => localStorage.getItem("myVoice") || "male");
   // Use sessionStorage first (set during room creation/join), then Supabase username, then fallback
   const myName = sessionStorage.getItem("meetingUsername") || username || "You";
+
+  useEffect(() => {
+    const storedVoice = localStorage.getItem("myVoice") || "male";
+    setMyVoice(storedVoice);
+    localStorage.setItem("myVoice", storedVoice);
+  }, []);
 
   // UI state
   const [status, setStatus] = useState("Click Start to Join");

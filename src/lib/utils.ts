@@ -74,17 +74,30 @@ export async function apiPost(endpoint: string, data: any) {
 // ---------------------------------------------
 
 // Create a new room
-export function createRoom(language: string) {
+export function createRoom(language: string, voice?: string) {
   // Get username from sessionStorage (set when creating room) or fallback
   const creatorName = sessionStorage.getItem("meetingUsername") || "User";
-  return apiPost("/create-room", { creatorLanguage: language, creatorName });
+  const creatorVoice = voice || localStorage.getItem("myVoice") || "male";
+
+  // FEATURE: speaker voice belongs to the creator/speaker, not the listener; the backend must
+  // persist creatorVoice and use it when generating translated TTS for that speaker.
+  return apiPost("/create-room", {
+    creatorLanguage: language,
+    creatorName,
+    creatorVoice,
+  });
 }
 
 // Join an existing room
 export function joinRoom(roomId: string, language: string, voice: string) {
   // Get username from sessionStorage (set when joining room) or fallback
   const participantName = sessionStorage.getItem("meetingUsername") || "User";
-  return apiPost("/join-room", { roomId, participantLanguage: language, participantVoice: voice, participantName });
+  return apiPost("/join-room", {
+    roomId,
+    participantLanguage: language,
+    participantVoice: voice,
+    participantName,
+  });
 }
 
 // Get room info

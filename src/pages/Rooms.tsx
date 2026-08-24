@@ -65,8 +65,9 @@ const Rooms = () => {
     try {
       // Store username BEFORE calling createRoom so API uses it
       sessionStorage.setItem("meetingUsername", username.trim() || "User");
+      localStorage.setItem("myVoice", createVoice);
 
-      const result = await createRoom(language);
+      const result = await createRoom(language, createVoice);
 
       const newRoomId = result.roomId;
       if (!newRoomId) throw new Error("Invalid response from server.");
@@ -161,6 +162,7 @@ const Rooms = () => {
     try {
       // Store username BEFORE calling joinRoom so API uses it
       sessionStorage.setItem("meetingUsername", username.trim() || "User");
+      localStorage.setItem("myVoice", joinVoice);
 
       const result = await joinRoom(roomId.trim(), language, joinVoice);
 
