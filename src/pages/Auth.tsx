@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { countries, getStatesByCountry } from "@/lib/countryStateData";
 import Footer from "@/components/Footer";
 import PremiumBackground from "@/components/PremiumBackground";
+import { BASE_URL } from "@/lib/utils";
 
 // =====================================================
 // VALIDATION FUNCTIONS
@@ -136,7 +137,8 @@ const Auth = () => {
   // =====================================================
   // 🔐 VALIDATE AND PROCEED TO CONFIRMATION
   // =====================================================
-  const handleProceedToConfirmation = (e: React.FormEvent) => {
+  // PRIME TALKER - Check existing email before proceeding with signup
+  const handleProceedToConfirmation = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validate all fields
@@ -183,8 +185,42 @@ const Auth = () => {
       return;
     }
 
-    // All validations passed, proceed to confirmation
-    setSignupStep(2);
+    // =====================================================
+    // PRIME TALKER - Check whether the email already has an account
+    // =====================================================
+    try {
+      const response = await fetch(
+        `${BASE_URL}/api/check-email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.exists) {
+        toast({
+          title: "Account Already Exists",
+          description: "An account with this email address already exists. Please sign in instead.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Email is available, proceed to confirmation
+      setSignupStep(2);
+    } catch (error) {
+      console.error("Email check failed:", error);
+      toast({
+        title: "Unable to Verify Email",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // =====================================================
