@@ -6,7 +6,7 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const apiTarget = env.VITE_API_URL || "https://matrimony-unguarded-felt-tip.ngrok-free.dev";
+  const apiTarget = env.VITE_API_URL || "https://live-translation-backend.azurewebsites.net";
   const wsTarget = apiTarget.startsWith("https")
     ? apiTarget.replace("https://", "wss://")
     : apiTarget.replace("http://", "ws://");

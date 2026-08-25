@@ -18,7 +18,7 @@ export function cn(...inputs: ClassValue[]) {
 // ---------------------------------------------
 export const BASE_URL = import.meta.env.DEV
   ? ""
-  : import.meta.env.VITE_API_URL || "https://matrimony-unguarded-felt-tip.ngrok-free.dev";
+  : import.meta.env.VITE_API_URL || "https://live-translation-backend.azurewebsites.net";
 console.log("BASE_URL:", BASE_URL || "[relative root]");
 
 // ---------------------------------------------
