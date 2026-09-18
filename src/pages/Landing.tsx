@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import PremiumBackground from "@/components/PremiumBackground";
 import ProfileMenu from "@/components/ProfileMenu";
 import ProfileDrawer from "@/components/ProfileDrawer";
+import Navbar from "@/components/Navbar";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -42,53 +43,7 @@ const Landing = () => {
       <PremiumBackground />
 
       {/* NAVIGATION BAR */}
-      <nav className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
-
-          {/* LEFT - LOGO */}
-          <div
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={() => navigate("/landing")}
-          >
-            <img
-              src="/logo.png"
-              alt="Logo"
-              className="w-28 sm:w-40 h-auto object-contain select-none"
-            />
-          </div>
-
-          {/* RIGHT - PROFILE / BUTTONS */}
-          {user ? (
-            <div className="flex items-center gap-3">
-              <ProfileMenu
-                user={user}
-                drawerOpen={drawerOpen}
-                setDrawerOpen={setDrawerOpen}
-              />
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSignOut}
-                className="text-sm"
-              >
-                <LogOut className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Sign Out</span>
-              </Button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 sm:gap-4">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="text-sm">
-                Sign In
-              </Button>
-              <Button onClick={() => navigate("/auth")} size="sm" className="shadow-primary text-sm">
-                Get Started
-              </Button>
-            </div>
-          )}
-
-        </div>
-      </nav>
+      <Navbar user={user} drawerOpen={drawerOpen} setDrawerOpen={setDrawerOpen} />
 
       {/* HERO SECTION */}
       <section className="container mx-auto px-4 py-12 sm:py-20 text-center animate-fade-in">

@@ -18,6 +18,7 @@ import { useUsername } from "@/hooks/useUsername";
 import { joinRoom } from "@/lib/utils";
 import Footer from "@/components/Footer";
 import PremiumBackground from "@/components/PremiumBackground";
+import Navbar from "@/components/Navbar";
 
 const Join = () => {
     const { roomId } = useParams();
@@ -85,6 +86,7 @@ const Join = () => {
     return (
         <div className="min-h-screen bg-gradient-hero flex flex-col">
             <PremiumBackground />
+            <Navbar />
             <main className="flex-1 flex items-center justify-center p-4">
                 <Card className="w-full max-w-md shadow-primary border-2">
                     <CardHeader className="text-center space-y-3 sm:space-y-4">

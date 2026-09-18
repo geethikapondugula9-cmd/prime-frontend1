@@ -29,7 +29,12 @@ const Footer = () => {
 
                     {/* Right Column - Contact Info */}
                     <div className="space-y-4">
-                        <h4 className="text-foreground font-semibold text-lg">Contact Us</h4>
+                        <h4
+                            onClick={() => navigate("/contact")}
+                            className="text-foreground font-semibold text-lg cursor-pointer hover:text-primary transition-colors inline-block"
+                        >
+                            Contact Us
+                        </h4>
 
                         <div className="space-y-3">
                             {/* Company & Address */}

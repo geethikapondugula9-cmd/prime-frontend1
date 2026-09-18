@@ -13,6 +13,7 @@ import Rooms from "./pages/Rooms";
 import Join from "./pages/Join";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const App = () => {
               <Route path="/" element={<Index />} />
 
               <Route path="/landing" element={<Landing />} />
+              <Route path="/contact" element={<Contact />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
 

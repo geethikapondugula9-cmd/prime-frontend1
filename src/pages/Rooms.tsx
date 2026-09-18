@@ -19,6 +19,7 @@ import Footer from "@/components/Footer";
 import PremiumBackground from "@/components/PremiumBackground";
 import ProfileMenu from "@/components/ProfileMenu";
 import ProfileDrawer from "@/components/ProfileDrawer";
+import Navbar from "@/components/Navbar";
 
 const Rooms = () => {
   const navigate = useNavigate();
@@ -201,32 +202,7 @@ const Rooms = () => {
     <div className="min-h-screen bg-gradient-hero flex flex-col">
       <PremiumBackground />
       {/* Header */}
-      <header className="border-b border-border bg-background/80 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/landing")}>
-            <img src="/logo.png" className="w-28 sm:w-40 h-auto" alt="Logo" />
-          </div>
-          <div className="flex items-center gap-3">
-            {user && (
-              <ProfileMenu
-                user={user}
-                drawerOpen={drawerOpen}
-                setDrawerOpen={setDrawerOpen}
-              />
-            )}
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-              className="text-sm"
-            >
-              <LogOut className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Sign Out</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Navbar user={user} drawerOpen={drawerOpen} setDrawerOpen={setDrawerOpen} />
 
       {/* Main */}
       <main className="flex-1 container mx-auto px-4 py-6 sm:py-12 flex items-center justify-center">
