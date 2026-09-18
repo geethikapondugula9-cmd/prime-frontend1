@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 
 const NotFound = () => {
   const location = useLocation();
@@ -16,6 +17,7 @@ const NotFound = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
+      <Navbar />
       <main className="flex-1 flex items-center justify-center">
         <div className="text-center space-y-4 p-6">
           <h1 className="text-6xl font-bold text-foreground">404</h1>
