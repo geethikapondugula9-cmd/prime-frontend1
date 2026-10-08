@@ -136,7 +136,7 @@ Thank you.
                   <Input
                     id="firstName"
                     name="firstName"
-                    placeholder="manjunadh"
+                    placeholder="Enter your first name"
                     value={formData.firstName}
                     onChange={handleChange}
                     required
@@ -150,7 +150,7 @@ Thank you.
                   <Input
                     id="lastName"
                     name="lastName"
-                    placeholder="Doe"
+                    placeholder="Enter your last name"
                     value={formData.lastName}
                     onChange={handleChange}
                     className="bg-background/50 border-input"
@@ -168,7 +168,7 @@ Thank you.
                     id="email"
                     type="email"
                     name="email"
-                    placeholder="manjunadhbhavaraju@gmail.com"
+                    placeholder="Enter your email"
                     value={formData.email}
                     onChange={handleChange}
                     required
@@ -183,7 +183,7 @@ Thank you.
                     id="phone"
                     type="tel"
                     name="phone"
-                    placeholder="+1 (317) 000-0000"
+                    placeholder="Enter your phone number with country code"
                     value={formData.phone}
                     onChange={handleChange}
                     className="bg-background/50 border-input"
