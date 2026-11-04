@@ -31,6 +31,7 @@ export function useTwilioVideo({
     const [localVideoTrack, setLocalVideoTrack] = useState<LocalVideoTrack | null>(null);
     // Screen Sharing Feature - Track whether the user is currently sharing their screen
     const [isScreenSharing, setIsScreenSharing] = useState(false);
+    const [localScreenTrack, setLocalScreenTrack] = useState<LocalVideoTrack | null>(null);
     const [remoteVideoTrack, setRemoteVideoTrack] = useState<RemoteVideoTrack | null>(null);
 
     // Screen Sharing Feature - Store the remote participant's shared screen
@@ -181,30 +182,18 @@ export function useTwilioVideo({
             // Get token with retry
             const token = await fetchToken();
 
-            // Create local video track with error handling
-            let videoTrack: LocalVideoTrack;
-            try {
-                videoTrack = await Video.createLocalVideoTrack({
-                    width: { ideal: 640 },
-                    height: { ideal: 480 },
-                    frameRate: { ideal: 24 },
-                });
-                console.log("✅ Local video track created");
-            } catch (trackErr: any) {
-                console.error("❌ Failed to create local video track:", trackErr);
-                throw new Error(`Camera access failed: ${trackErr.message}`);
-            }
-
-            localTrackRef.current = videoTrack;
-            setLocalVideoTrack(videoTrack);
-
-            // Connect to room
+            // Connect to room with camera OFF by default
             const room = await Video.connect(token, {
                 name: roomId,
-                tracks: [videoTrack],
+                tracks: [],
                 dominantSpeaker: true,
                 networkQuality: { local: 1, remote: 1 },
             });
+
+            // Camera stays off until the user enables it
+            localTrackRef.current = null;
+            setLocalVideoTrack(null);
+            setIsVideoOn(false);
 
             roomRef.current = room;
             setIsConnected(true);
@@ -270,6 +259,21 @@ export function useTwilioVideo({
             setLocalVideoTrack(null);
         }
 
+        // Stop local screen track to close browser screen sharing popup
+        if (screenTrackRef.current) {
+            try {
+                if (roomRef.current) {
+                    roomRef.current.localParticipant.unpublishTrack(screenTrackRef.current);
+                }
+                screenTrackRef.current.stop();
+            } catch (e) {
+                console.warn("Error stopping screen track on disconnect:", e);
+            }
+            screenTrackRef.current = null;
+            setLocalScreenTrack(null);
+            setIsScreenSharing(false);
+        }
+
         // Disconnect from room
         if (roomRef.current) {
             roomRef.current.disconnect();
@@ -279,6 +283,7 @@ export function useTwilioVideo({
         setIsConnected(false);
         setIsConnecting(false);
         setRemoteVideoTrack(null);
+        setRemoteScreenTrack(null);
     }, []);
 
     // Toggle video on/off
@@ -343,6 +348,7 @@ export function useTwilioVideo({
                 screenTrack.stop();
 
                 screenTrackRef.current = null;
+                setLocalScreenTrack(null);
                 setIsScreenSharing(false);
 
                 console.log("🖥️ Screen sharing stopped");
@@ -368,6 +374,7 @@ export function useTwilioVideo({
             );
 
             screenTrackRef.current = screenTrack;
+            setLocalScreenTrack(screenTrack);
 
             await roomRef.current.localParticipant.publishTrack(screenTrack);
 
@@ -381,6 +388,7 @@ export function useTwilioVideo({
                     roomRef.current.localParticipant.unpublishTrack(screenTrackRef.current);
                     screenTrackRef.current.stop();
                     screenTrackRef.current = null;
+                    setLocalScreenTrack(null);
                     setIsScreenSharing(false);
 
                     console.log("🖥️ Screen sharing stopped by browser");
@@ -411,6 +419,7 @@ export function useTwilioVideo({
         // Screen Sharing Feature - Expose screen sharing state
         isScreenSharing,
         localVideoTrack,
+        localScreenTrack,
         remoteVideoTrack,
         // Screen Sharing Feature - Expose the remote participant's shared screen
         remoteScreenTrack,

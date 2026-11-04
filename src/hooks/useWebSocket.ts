@@ -15,6 +15,7 @@ interface TranscriptItem {
     timestamp: number;
 }
 
+
 interface UseWebSocketProps {
     roomId: string;
     userType: "caller" | "receiver";
@@ -23,8 +24,13 @@ interface UseWebSocketProps {
     myName: string;
     onPartnerJoined?: (name: string, language: string) => void;
     onPartnerLeft?: () => void;
+
+    // FEATURE: Notify Meeting.tsx when the creator ends the meeting.
+    onMeetingEnded?: (creatorName: string, creatorLanguage: string) => void;
+
     isSpeakerOn?: boolean;
 }
+
 
 export function useWebSocket({
     roomId,
@@ -35,7 +41,9 @@ export function useWebSocket({
     isSpeakerOn = true,
     onPartnerJoined,
     onPartnerLeft,
+    onMeetingEnded, // FEATURE: Handle the creator-ended meeting notification.
 }: UseWebSocketProps) {
+
     // Connection state
     const [status, setStatus] = useState<string>("Disconnected");
     const [isConnected, setIsConnected] = useState(false);
@@ -69,6 +77,8 @@ export function useWebSocket({
     const isAudioOnRef = useRef(true); // Track mute state for audio processor
     const isSpeakerOnRef = useRef(true); // Track speaker state
     const partnerLevelTimeoutRef = useRef<number | null>(null);
+
+    const [partnerMuted, setPartnerMuted] = useState(false);
 
     // Sync isAudioOnRef with isAudioOn state
     useEffect(() => {
@@ -216,14 +226,62 @@ export function useWebSocket({
                 const data = JSON.parse(event.data);
 
                 switch (data.event) {
-                    case "user_joined":
-                        console.log("👤 Partner joined:", data.name);
-                        onPartnerJoined?.(data.name, data.language);
-                        break;
 
+                    case "user_joined":
+                        // Debug: inspect the partner details received by this participant.
+                        console.log("👤 Partner joined details:", {
+                            name: data.name,
+                            language: data.language,
+                            eventData: data,
+                        });
+
+                        onPartnerJoined?.(data.name, data.language);
+
+                        // Send current mute state to newly joined partner
+                        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                            wsRef.current.send(
+                                JSON.stringify({
+                                    event: "mute_status",
+                                    roomId,
+                                    userType,
+                                    muted: !isAudioOnRef.current,
+                                })
+                            );
+                        }
+                        break;
+                        
                     case "user_left":
                         console.log("👤 Partner left");
+                        setPartnerMuted(false);
                         onPartnerLeft?.();
+                        break;
+
+                    // FEATURE: Handle the creator ending the meeting.
+                    case "meeting_ended":
+                        console.log("📴 Creator ended the meeting:", {
+                            creatorName: data.creatorName,
+                            creatorLanguage: data.creatorLanguage,
+                        });
+
+                        onMeetingEnded?.(
+                            data.creatorName || "Creator",
+                            data.creatorLanguage || "Unknown"
+                        );
+                        break;
+
+
+                    case "mute_status":
+                    case "user_mute":
+                    case "user_muted":
+                    case "mute_change":
+                    case "audio_toggle":
+                        if (data.userType ? data.userType !== userType : data.sender !== myName) {
+                            if (typeof data.muted === "boolean") {
+                                setPartnerMuted(data.muted);
+                            } else if (typeof data.isAudioOn === "boolean") {
+                                setPartnerMuted(!data.isAudioOn);
+                            }
+                        }
                         break;
 
                     case "transcript_interim":
@@ -290,7 +348,7 @@ export function useWebSocket({
                 console.error("Error parsing message:", e);
             }
         },
-        [onPartnerJoined, onPartnerLeft, playDirectAudioChunk, processAudioQueue, roomId, userType]
+        [onPartnerJoined, onPartnerLeft, playDirectAudioChunk, processAudioQueue, roomId, userType, myName]
     );
 
     // Start audio capture
@@ -422,6 +480,16 @@ export function useWebSocket({
                 })
             );
 
+            // Broadcast initial mute state
+            ws.send(
+                JSON.stringify({
+                    event: "mute_status",
+                    roomId,
+                    userType,
+                    muted: !isAudioOnRef.current,
+                })
+            );
+
             // Start audio capture
             console.log("➡️ About to call startAudioCapture()");
             startAudioCapture();
@@ -510,6 +578,7 @@ export function useWebSocket({
         setIsConnected(false);
         setStatus("Disconnected");
         setLocalLevel(0);
+        setPartnerMuted(false);
     }, []);
 
     // Toggle mute
@@ -517,6 +586,18 @@ export function useWebSocket({
         setIsAudioOn((prev) => {
             const newValue = !prev;
             isAudioOnRef.current = newValue; // Update ref immediately
+
+            // Broadcast mute status to partner via WebSocket
+            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                wsRef.current.send(
+                    JSON.stringify({
+                        event: "mute_status",
+                        roomId,
+                        userType,
+                        muted: !newValue,
+                    })
+                );
+            }
 
             // Also disable the actual audio track for hardware-level mute
             if (mediaStreamRef.current) {
@@ -533,7 +614,7 @@ export function useWebSocket({
             console.log(`🎤 Mute toggled: ${newValue ? 'UNMUTED' : 'MUTED'}`);
             return newValue;
         });
-    }, []);
+    }, [roomId, userType]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -547,6 +628,7 @@ export function useWebSocket({
         status,
         isConnected,
         isAudioOn,
+        partnerMuted,
         localLevel,
         partnerLevel,
         transcripts,

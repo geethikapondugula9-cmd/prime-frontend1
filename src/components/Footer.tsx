@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 
 const Footer = () => {
     const navigate = useNavigate();
@@ -7,21 +7,20 @@ const Footer = () => {
     return (
         <footer className="border-t border-border bg-card/80 backdrop-blur-sm">
             <div className="container mx-auto px-4 py-8 sm:py-12">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10">
-
+                <div className="grid grid-cols-1 gap-8 sm:gap-10 md:grid-cols-2">
                     {/* Left Column - Logo & Tagline */}
                     <div className="space-y-4">
                         <div
                             onClick={() => navigate("/landing")}
-                            className="flex items-center gap-2 cursor-pointer w-fit"
+                            className="flex w-fit cursor-pointer items-center gap-2"
                         >
                             <img
                                 src="/logo.png"
                                 alt="PrimeTalker Logo"
-                                className="w-36 h-auto object-contain"
+                                className="h-auto w-36 object-contain"
                             />
                         </div>
-                        <p className="text-muted-foreground text-sm max-w-sm leading-relaxed">
+                        <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
                             Break language barriers in real-time. Connect with anyone, anywhere
                             with instant voice translation during calls.
                         </p>
@@ -31,59 +30,52 @@ const Footer = () => {
                     <div className="space-y-4">
                         <h4
                             onClick={() => navigate("/contact")}
-                            className="text-foreground font-semibold text-lg cursor-pointer hover:text-primary transition-colors inline-block"
+                            className="inline-block cursor-pointer text-lg font-semibold text-foreground transition-colors hover:text-primary"
                         >
                             Contact Us
                         </h4>
 
                         <div className="space-y-3">
-                            {/* Company & Address */}
-                            <div className="flex items-start gap-3 group">
-                                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                                    <MapPin className="w-4 h-4 text-primary" />
+                            <div className="group flex items-start gap-3">
+                                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20">
+                                    <MapPin className="h-4 w-4 text-primary" />
                                 </div>
-                                <div className="text-sm text-muted-foreground leading-relaxed">
+                                <div className="text-sm leading-relaxed text-muted-foreground">
                                     <p className="font-medium text-foreground">Catalina Business Solutions Inc (CBS Inc)</p>
                                     <p>8888 Keystone Crossing, Suite 1373</p>
                                     <p>Indianapolis, IN 46240</p>
                                 </div>
                             </div>
 
-                            {/* Phone */}
                             <a
                                 href="tel:+13175754181"
-                                className="flex items-center gap-3 group hover:translate-x-1 transition-transform"
+                                className="group flex items-center gap-3 transition-transform hover:translate-x-1"
                             >
-                                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                                    <Phone className="w-4 h-4 text-primary" />
+                                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20">
+                                    <Phone className="h-4 w-4 text-primary" />
                                 </div>
-                                <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                                <span className="text-sm text-muted-foreground transition-colors group-hover:text-foreground">
                                     +1-317-575-4181
                                 </span>
                             </a>
 
-                            {/* Email */}
                             <a
                                 href="mailto:info@cbs-corp.com"
-                                className="flex items-center gap-3 group hover:translate-x-1 transition-transform"
+                                className="group flex items-center gap-3 transition-transform hover:translate-x-1"
                             >
-                                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                                    <Mail className="w-4 h-4 text-primary" />
+                                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20">
+                                    <Mail className="h-4 w-4 text-primary" />
                                 </div>
-                                <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                                <span className="text-sm text-muted-foreground transition-colors group-hover:text-foreground">
                                     info@cbs-corp.com
                                 </span>
                             </a>
                         </div>
                     </div>
-
                 </div>
 
-                {/* Bottom Bar - Copyright */}
-                <div className="mt-6 sm:mt-10 pt-4 sm:pt-6 border-t border-border/50">
-                    <p className="text-muted-foreground text-xs sm:text-sm text-center">
-                        © 2025 PrimeTalker by Catalina Business Solutions Inc. All rights reserved.
-                    </p>
+                <div className="mt-8 border-t border-border/80 pt-4 text-center text-xs text-muted-foreground sm:text-sm">
+                    © {new Date().getFullYear()} PrimeTalker. All rights reserved.
                 </div>
             </div>
         </footer>
@@ -91,3 +83,4 @@ const Footer = () => {
 };
 
 export default Footer;
+

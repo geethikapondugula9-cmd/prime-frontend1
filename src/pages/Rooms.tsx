@@ -120,6 +120,27 @@ const Rooms = () => {
     }
   };
 
+
+  // Copy Room ID to clipboard
+  const handleCopyRoomId = async (roomId: string) => {
+    if (!roomId) return;
+
+    try {
+      await navigator.clipboard.writeText(roomId);
+
+      toast({
+        title: "Room ID Copied!",
+        description: "Room ID copied successfully!",
+      });
+    } catch (err) {
+      toast({
+        title: "Copy Failed",
+        description: "Please copy the Room ID manually.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Enter the created room
   const handleEnterRoom = () => {
     if (createdRoomId) {
@@ -199,8 +220,7 @@ const Rooms = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex flex-col">
-      <PremiumBackground />
+    <div className="min-h-screen dark:bg-[#0B0F17] bg-white dark:text-white text-slate-900 flex flex-col font-sans transition-colors">
       {/* Header */}
       <Navbar user={user} drawerOpen={drawerOpen} setDrawerOpen={setDrawerOpen} />
 
@@ -209,7 +229,7 @@ const Rooms = () => {
         <div className={`w-full grid ${createdRoomId ? 'max-w-md grid-cols-1' : 'max-w-4xl grid-cols-1 md:grid-cols-2'} gap-4 sm:gap-6`}>
 
           {/* Create Room / Enter Room */}
-          <Card className="shadow-primary border-2 hover:border-primary/50 transition-all">
+          <Card className="shadow-xl border dark:border-slate-800 border-slate-200 dark:bg-slate-900/60 bg-white backdrop-blur-xl rounded-2xl transition-all">
             <CardHeader className="text-center space-y-4">
               <div className="w-16 h-16 mx-auto rounded-xl bg-gradient-primary flex items-center justify-center">
                 <Video className="w-10 h-10 text-primary-foreground" />
@@ -254,9 +274,31 @@ const Rooms = () => {
                       <option value="ko">Korean</option>
                       <option value="ar">Arabic</option>
                       <option value="ru">Russian</option>
+
+                      <option value="it">Italian</option>
+                      <option value="vi">Vietnamese</option>
+                      <option value="th">Thai</option>
+                      <option value="id">Indonesian</option>
+                      <option value="ms">Malay</option>
+                      <option value="fil">Filipino</option>
+                      <option value="tr">Turkish</option>
+                      <option value="nl">Dutch</option>
+                      <option value="pl">Polish</option>
+                      <option value="sv">Swedish</option>
+                      <option value="da">Danish</option>
+                      <option value="no">Norwegian</option>
+                      <option value="fi">Finnish</option>
+                      <option value="el">Greek</option>
+                      <option value="cs">Czech</option>
+                      <option value="ro">Romanian</option>
+                      <option value="hu">Hungarian</option>
+                      <option value="uk">Ukrainian</option>
+                      <option value="he">Hebrew</option>
+                      <option value="fa">Persian</option>
+                      <option value="af">Afrikaans</option>
                     </select>
                   </div>
-                  {/* <div className="space-y-2">
+                  <div className="space-y-2">
                     <Label>Your Voice</Label>
 
                     <select
@@ -267,7 +309,7 @@ const Rooms = () => {
                       <option value="male">Male</option>
                       <option value="female">Female</option>
                     </select>
-                  </div> */}
+                  </div>
 
                   <Button
                     className="w-full shadow-primary"
@@ -280,6 +322,7 @@ const Rooms = () => {
                 </>
               ) : (
                 <>
+
                   {/* Room Created - Show Share Link */}
                   <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4 space-y-3">
                     <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
@@ -287,11 +330,24 @@ const Rooms = () => {
                       <span className="font-medium">Room Created!</span>
                     </div>
 
+                    {/* Display Room ID with Copy Button */}
                     <div className="text-center">
                       <div className="text-sm text-muted-foreground mb-1">Room ID</div>
                       <div className="text-2xl font-mono font-bold">{createdRoomId}</div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={() => handleCopyRoomId(createdRoomId)}
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy Room ID
+                      </Button>
                     </div>
                   </div>
+
 
                   {/* Share Link */}
                   <div className="space-y-2">
@@ -342,7 +398,7 @@ const Rooms = () => {
 
           {/* Join Room - Only show when no room has been created */}
           {!createdRoomId && (
-            <Card className="shadow-primary border-2 hover:border-primary/50 transition-all">
+            <Card className="shadow-xl border dark:border-slate-800 border-slate-200 dark:bg-slate-900/60 bg-white backdrop-blur-xl rounded-2xl transition-all">
               <CardHeader className="text-center space-y-4">
                 <div className="w-16 h-16 mx-auto rounded-xl bg-gradient-primary flex items-center justify-center">
                   <Globe className="w-10 h-10 text-primary-foreground" />
@@ -394,9 +450,31 @@ const Rooms = () => {
                       <option value="ko">Korean</option>
                       <option value="ar">Arabic</option>
                       <option value="ru">Russian</option>
+
+                      <option value="it">Italian</option>
+                      <option value="vi">Vietnamese</option>
+                      <option value="th">Thai</option>
+                      <option value="id">Indonesian</option>
+                      <option value="ms">Malay</option>
+                      <option value="fil">Filipino</option>
+                      <option value="tr">Turkish</option>
+                      <option value="nl">Dutch</option>
+                      <option value="pl">Polish</option>
+                      <option value="sv">Swedish</option>
+                      <option value="da">Danish</option>
+                      <option value="no">Norwegian</option>
+                      <option value="fi">Finnish</option>
+                      <option value="el">Greek</option>
+                      <option value="cs">Czech</option>
+                      <option value="ro">Romanian</option>
+                      <option value="hu">Hungarian</option>
+                      <option value="uk">Ukrainian</option>
+                      <option value="he">Hebrew</option>
+                      <option value="fa">Persian</option>
+                      <option value="af">Afrikaans</option>
                     </select>
                   </div>
-                  {/* <div className="space-y-2">
+                  <div className="space-y-2">
                     <Label>Your Voice</Label>
 
                     <select
@@ -407,7 +485,7 @@ const Rooms = () => {
                       <option value="male">Male</option>
                       <option value="female">Female</option>
                     </select>
-                  </div> */}
+                  </div>
 
                   <Button
                     type="submit"

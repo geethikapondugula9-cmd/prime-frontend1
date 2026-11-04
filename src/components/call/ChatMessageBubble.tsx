@@ -23,10 +23,10 @@ export default function ChatMessageBubble({ message, isOwn }: ChatMessageBubbleP
   return (
     <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
       <div
-        className={`max-w-[85%] rounded-2xl px-3 py-2 shadow-sm ${
+        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 shadow-md ${
           isOwn
-            ? "bg-gradient-to-r from-sky-600 to-indigo-600 text-white"
-            : "bg-slate-800/80 text-slate-100"
+            ? "bg-indigo-600 text-white shadow-indigo-600/20"
+            : "bg-slate-900/60 backdrop-blur-xl border border-slate-800 text-slate-100"
         }`}
       >
         <div className="mb-1 flex items-center gap-2">
@@ -37,7 +37,7 @@ export default function ChatMessageBubble({ message, isOwn }: ChatMessageBubbleP
         </div>
         <div className="text-sm leading-6 break-words">{displayText}</div>
         {!isOwn && (
-          <div className="mt-1 text-[10px] uppercase tracking-wide text-slate-400">
+          <div className="mt-1 text-[10px] uppercase tracking-wide text-indigo-400 font-medium">
             {message.sourceLanguage} → {message.targetLanguage}
           </div>
         )}

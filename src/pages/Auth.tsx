@@ -79,6 +79,8 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // 🔄 Resend verification email cooldown (60 seconds)
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -202,12 +204,22 @@ const Auth = () => {
 
       const result = await response.json();
 
+      // PRIME TALKER - Handle verified and unverified existing accounts separately
       if (result.exists) {
-        toast({
-          title: "Account Already Exists",
-          description: "An account with this email address already exists. Please sign in instead.",
-          variant: "destructive",
-        });
+        if (result.verified) {
+          toast({
+            title: "Account Already Exists",
+            description: "An account with this email address already exists. Please sign in instead.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Email Not Verified",
+            description: "This email is already registered but has not been verified yet. Please check your verification email.",
+            variant: "destructive",
+          });
+        }
+
         return;
       }
 
@@ -279,6 +291,19 @@ const Auth = () => {
       } else {
         console.log("⚠️ No user returned from signUp");
       }
+      // 🔄 Start 60-second resend verification cooldown
+      setResendCooldown(60);
+
+      const timer = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+
+          return prev - 1;
+        });
+      }, 1000);
 
       // Move to email confirmation step
       setSignupStep(3);
@@ -292,7 +317,54 @@ const Auth = () => {
       setLoading(false);
     }
   };
+  // =====================================================
+  // 🔄 RESEND VERIFICATION EMAIL
+  // =====================================================
+  const handleResendVerification = async () => {
+    if (resendCooldown > 0) return;
 
+    try {
+      setLoading(true);
+
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: email,
+        options: {
+          emailRedirectTo: `${import.meta.env.VITE_SITE_URL}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Verification Email Sent",
+        description: "A new verification email has been sent. Please check your inbox.",
+      });
+
+      // Start 60-second cooldown
+      setResendCooldown(60);
+
+      // Countdown timer
+      const timer = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (error: any) {
+      toast({
+        title: "Resend Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   // =====================================================
   // 🔐 SIGN IN HANDLER
   // =====================================================
@@ -317,7 +389,8 @@ const Auth = () => {
         description: "Logged in successfully!",
       });
 
-      navigate("/rooms");
+      // Keep the user on the Landing page after signing in
+      navigate("/landing", { replace: true });
     } catch (error: any) {
       toast({
         title: "Authentication Failed",
@@ -482,6 +555,24 @@ const Auth = () => {
           </div>
         </div>
 
+        {/* Resend Verification Email */}
+        <div className="space-y-2">
+          <Button
+            type="button"
+            className="w-full"
+            onClick={handleResendVerification}
+            disabled={resendCooldown > 0 || loading}
+          >
+            Resend Verification Email
+          </Button>
+
+          {resendCooldown > 0 && (
+            <p className="text-center text-sm text-gray-500">
+              You can request another verification email in{" "}
+              <span className="font-semibold">{resendCooldown}s</span>
+            </p>
+          )}
+        </div>
         {/* Back to Sign In */}
         <Button
           variant="outline"
@@ -773,8 +864,7 @@ const Auth = () => {
   // If on email confirmation step, show that
   if (isSignUp && signupStep === 3) {
     return (
-      <div className="min-h-screen bg-gradient-hero flex flex-col">
-        <PremiumBackground />
+      <div className="min-h-screen dark:bg-[#0B0F17] bg-white dark:text-white text-slate-900 flex flex-col font-sans transition-colors">
         <main className="flex-1 flex items-center justify-center p-4">
           {renderEmailConfirmation()}
         </main>
@@ -786,8 +876,7 @@ const Auth = () => {
   // If on confirmation step, show that
   if (isSignUp && signupStep === 2) {
     return (
-      <div className="min-h-screen bg-gradient-hero flex flex-col">
-        <PremiumBackground />
+      <div className="min-h-screen dark:bg-[#0B0F17] bg-white dark:text-white text-slate-900 flex flex-col font-sans transition-colors">
         <main className="flex-1 flex items-center justify-center p-4">
           {renderConfirmationPage()}
         </main>
@@ -797,10 +886,9 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex flex-col">
-      <PremiumBackground />
+    <div className="min-h-screen dark:bg-[#0B0F17] bg-white dark:text-white text-slate-900 flex flex-col font-sans transition-colors">
       <main className="flex-1 flex items-center justify-center p-4">
-        <Card className={`w-full shadow-primary ${isSignUp ? 'max-w-lg' : 'max-w-md'}`}>
+        <Card className={`w-full shadow-xl border dark:border-slate-800 border-slate-200 dark:bg-slate-900/80 bg-white backdrop-blur-xl rounded-2xl ${isSignUp ? 'max-w-lg' : 'max-w-md'}`}>
           <CardHeader className="text-center space-y-4">
             <div className="flex justify-center mb-4">
               <img

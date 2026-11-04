@@ -73,11 +73,21 @@ const Join = () => {
 
             navigate(`/meeting/${roomId}`);
         } catch (err: any) {
-            toast({
-                title: "Error Joining Room",
-                description: err.message,
-                variant: "destructive",
-            });
+
+            // NEW: Show a specific message when the meeting already has two participants
+            if (err.message === "This meeting already has two participants.") {
+                toast({
+                    title: "Meeting Full",
+                    description: "This meeting already has two participants. Please try again later.",
+                    variant: "destructive",
+                });
+            } else {
+                toast({
+                    title: "Error Joining Room",
+                    description: err.message,
+                    variant: "destructive",
+                });
+            }
         } finally {
             setIsJoining(false);
         }
@@ -100,6 +110,17 @@ const Join = () => {
                     </CardHeader>
 
                     <CardContent className="space-y-4">
+                        {/* Name Input - Guest users can enter their name before joining */}
+                        <div className="space-y-2">
+                            <Label>Your Name</Label>
+                            <input
+                                type="text"
+                                className="w-full bg-background border p-2 rounded-md"
+                                placeholder="Enter your name"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                            />
+                        </div>
                         {/* Language Selection */}
                         <div className="space-y-2">
                             <Label>Your Language</Label>
@@ -127,9 +148,33 @@ const Join = () => {
                                 <option value="ko">Korean</option>
                                 <option value="ar">Arabic</option>
                                 <option value="ru">Russian</option>
+
+                                {/* Additional languages */}
+                                <option value="it">Italian</option>
+                                <option value="vi">Vietnamese</option>
+                                <option value="th">Thai</option>
+                                <option value="id">Indonesian</option>
+                                <option value="ms">Malay</option>
+                                <option value="fil">Filipino</option>
+                                <option value="tr">Turkish</option>
+                                <option value="nl">Dutch</option>
+                                <option value="pl">Polish</option>
+                                <option value="sv">Swedish</option>
+                                <option value="da">Danish</option>
+                                <option value="no">Norwegian</option>
+                                <option value="fi">Finnish</option>
+                                <option value="el">Greek</option>
+                                <option value="cs">Czech</option>
+                                <option value="ro">Romanian</option>
+                                <option value="hu">Hungarian</option>
+                                <option value="uk">Ukrainian</option>
+                                <option value="he">Hebrew</option>
+                                <option value="fa">Persian</option>
+                                <option value="af">Afrikaans</option>
+
                             </select>
                         </div>
-                        {/* <div className="space-y-2">
+                        <div className="space-y-2">
                             <Label>Your Voice</Label>
 
                             <select
@@ -140,7 +185,7 @@ const Join = () => {
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
                             </select>
-                        </div> */}
+                        </div>
 
                         <Button
                             className="w-full"
