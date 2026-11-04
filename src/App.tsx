@@ -14,6 +14,9 @@ import Join from "./pages/Join";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
 import Contact from "./pages/Contact";
+import Profile from "./pages/Profile";
+import MeetingEnded from "./pages/MeetingEnded";
+import UserGuide from "./pages/UserGuide";
 
 const queryClient = new QueryClient();
 
@@ -50,9 +53,11 @@ const App = () => {
             <Routes>
               {/* Redirect logic happens inside Index.tsx */}
               <Route path="/" element={<Index />} />
-
+              <Route path="/user-guide" element={<UserGuide />} />
               <Route path="/landing" element={<Landing />} />
+              <Route path="/landing-v2" element={<Navigate to="/landing" replace />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
 
@@ -67,6 +72,9 @@ const App = () => {
 
               {/* Meeting route is public - anyone with room ID can join */}
               <Route path="/meeting/:roomId" element={<Meeting />} />
+
+              {/* Meeting Ended page - displays the completed meeting summary */}
+              <Route path="/meeting-ended" element={<MeetingEnded />} />
 
               {/* Public join route for shared links */}
               <Route path="/join/:roomId" element={<Join />} />

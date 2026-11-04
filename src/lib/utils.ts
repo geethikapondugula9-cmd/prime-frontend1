@@ -64,8 +64,13 @@ export async function apiPost(endpoint: string, data: any) {
   });
 
   if (!res.ok) {
-    console.error(`POST ${endpoint} failed`, await res.text());
-    throw new Error(`POST ${endpoint} failed`);
+    const errorData = await res.json().catch(() => null);
+
+    console.error(`POST ${endpoint} failed`, errorData);
+
+    throw new Error(
+      errorData?.message || `POST ${endpoint} failed`
+    );
   }
   return res.json();
 }

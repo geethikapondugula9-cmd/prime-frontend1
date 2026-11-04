@@ -49,6 +49,33 @@ const ProfileDrawer = ({ user, open, onClose }: any) => {
         setAvatarPreview(URL.createObjectURL(file));
     };
 
+    // NEW: Remove Profile Picture
+    const handleRemoveProfilePicture = async () => {
+        try {
+            setSaving(true);
+            setError(null);
+
+            const { error } = await supabase.auth.updateUser({
+                data: {
+                    avatar_url: null,
+                },
+            });
+
+            if (error) throw error;
+
+            // Clear the current profile picture from the preview
+            setAvatarPreview("/default-avatar.svg");
+            setAvatarFile(null);
+
+            // Refresh the page so all profile components get the updated user metadata
+            window.location.reload();
+
+        } catch (err: any) {
+            setError(err.message || "Failed to remove profile picture");
+        } finally {
+            setSaving(false);
+        }
+    };
     /* Save Profile Changes */
     const handleSaveProfile = async () => {
         try {
@@ -220,14 +247,14 @@ const ProfileDrawer = ({ user, open, onClose }: any) => {
                             {/* Edit Profile */}
                             <button
                                 className="w-full px-4 py-3.5 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-slate-800/50 rounded-xl transition-colors text-left group"
-                                onClick={() => setEditing(true)}
+                                onClick={() => { onClose(); navigate("/profile"); }}
                             >
                                 <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
                                     <Pencil className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white">Edit Profile</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Update name and photo</p>
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white">Profile Details</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">View & update profile settings</p>
                                 </div>
                             </button>
 
@@ -245,11 +272,11 @@ const ProfileDrawer = ({ user, open, onClose }: any) => {
                                 </div>
                             </button>
 
-                            {/* User Guide */}
-                            <a
-                                href="/PrimeTalker-User-Guide.html"
-                                target="_blank"
-                                className="w-full px-4 py-3.5 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-slate-800/50 rounded-xl transition-colors text-left group block"
+                            {/* User Guide - opens the in-app guide page */}
+                            <button
+                                type="button"
+                                onClick={() => navigate("/user-guide")}
+                                className="w-full px-4 py-3.5 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-slate-800/50 rounded-xl transition-colors text-left group"
                             >
                                 <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center group-hover:bg-amber-100 dark:group-hover:bg-amber-900/30 transition-colors">
                                     <BookOpen className="w-5 h-5 text-amber-600 dark:text-amber-400" />
@@ -258,7 +285,7 @@ const ProfileDrawer = ({ user, open, onClose }: any) => {
                                     <p className="text-sm font-medium text-gray-900 dark:text-white">User Guide</p>
                                     <p className="text-xs text-gray-500 dark:text-gray-400">Learn how to use the app</p>
                                 </div>
-                            </a>
+                            </button>
 
                             {/* Settings */}
                             <button
@@ -293,6 +320,19 @@ const ProfileDrawer = ({ user, open, onClose }: any) => {
                                         Save Changes
                                     </>
                                 )}
+                            </button>
+
+                            {/* NEW: Remove Profile Picture */}
+                            <button
+                                type="button"
+                                onClick={handleRemoveProfilePicture}
+                                disabled={saving || !user.user_metadata?.avatar_url}
+                                className={`w-full py-3.5 rounded-xl font-medium text-sm transition-colors ${user.user_metadata?.avatar_url
+                                    ? "border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                    : "border border-gray-200 dark:border-slate-700 text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-slate-800 cursor-not-allowed"
+                                    }`}
+                            >
+                                Remove Profile Picture
                             </button>
 
                             <button
