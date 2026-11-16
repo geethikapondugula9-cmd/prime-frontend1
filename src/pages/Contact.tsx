@@ -13,6 +13,11 @@ import PremiumBackground from "@/components/PremiumBackground";
 import ProfileDrawer from "@/components/ProfileDrawer";
 import Navbar from "@/components/Navbar";
 
+// Backend URL configuration
+const BASE_URL = import.meta.env.DEV
+  ? "https://matrimony-unguarded-felt-tip.ngrok-free.dev"
+  : "https://live-translation-backend.azurewebsites.net";
+
 const Contact = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -51,11 +56,16 @@ const Contact = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Contact Us Email Feature: Prepare and open the user's email client with the submitted form details
-    if (!formData.firstName.trim() || !formData.email.trim() || !formData.message.trim()) {
+    // Validate required fields
+    if (
+      !formData.firstName.trim() ||
+      !formData.email.trim() ||
+      !formData.message.trim()
+    ) {
       toast({
         title: "Required Fields Missing",
         description: "Please fill out your name, email, and message.",
@@ -64,34 +74,75 @@ const Contact = () => {
       return;
     }
 
-    const recipientEmail = "primecontact@primetalker.com";
+    try {
+      setIsSubmitting(true);
 
-    const emailSubject =
-      formData.subject.trim() || "PrimeTalker Contact Us Enquiry";
 
-    const emailBody = `
-Hello Prime Talker Team,
+      // Get the current Supabase session
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-I would like to report an issue / make an enquiry through the Contact Us form.
+      // Prepare request headers
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
 
-First Name: ${formData.firstName.trim()}
-Last Name: ${formData.lastName.trim() || "N/A"}
-Email Address: ${formData.email.trim()}
-Phone Number: ${formData.phone.trim() || "N/A"}
+      // Attach authentication token for logged-in users
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
 
-Message:
-${formData.message.trim()}
+      // Send contact form details to the backend
+      const response = await fetch(`${BASE_URL}/api/contact`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          subject: formData.subject.trim(),
+          message: formData.message.trim(),
+        }),
+      });
 
-Thank you.
-    `.trim();
 
-    const mailtoLink =
-      `mailto:${recipientEmail}` +
-      `?subject=${encodeURIComponent(emailSubject)}` +
-      `&body=${encodeURIComponent(emailBody)}`;
+      const result = await response.json();
 
-    // Open the user's configured email application with the form details pre-filled
-    window.location.href = mailtoLink;
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Failed to send your message.");
+      }
+
+      toast({
+        title: "Message Sent Successfully!",
+        description: "Thank you for contacting Prime Talker. We will get back to you soon.",
+      });
+
+      // Clear the form after successful submission
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+      });
+
+    } catch (error) {
+      console.error("Contact form submission error:", error);
+
+      toast({
+        title: "Unable to Send Message",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -109,7 +160,7 @@ Thank you.
             Contact Us
           </h1>
           <p className="text-muted-foreground max-w-2xl leading-relaxed">
-            Have questions or need assistance? Reach out to Catalina Business Solutions Inc (CBS Inc) and our team will get back to you promptly.
+            Have questions or need assistance? Reach out to PrimeTalker team and our team will get back to you promptly.
           </p>
         </div>
 
@@ -171,6 +222,7 @@ Thank you.
                     placeholder="Enter your email"
                     value={formData.email}
                     onChange={handleChange}
+                    disabled={!!user}
                     required
                     className="bg-background/50 border-input"
                   />

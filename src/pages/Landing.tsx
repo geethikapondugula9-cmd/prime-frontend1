@@ -7,7 +7,6 @@ import ProfileDrawer from "@/components/ProfileDrawer";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { FeatureMatrix } from "@/components/landing/FeatureMatrix";
 import { InteractiveTabs } from "@/components/landing/InteractiveTabs";
-import { ComparisonSection } from "@/components/landing/ComparisonSection";
 import { UseCasesSection } from "@/components/landing/UseCasesSection";
 // import { FAQSection } from "@/components/landing/FAQSection";
 import { CTABanner } from "@/components/landing/CTABanner";
@@ -35,9 +34,6 @@ const Landing = () => {
 
       {/* 3. UNDER THE HOOD */}
       <InteractiveTabs />
-
-      {/* 4. COMPARISON MATRIX (PrimeTalker vs Zoom / Meet) */}
-      <ComparisonSection />
 
       {/* 5. USE CASES ACROSS INDUSTRIES */}
       <UseCasesSection user={user} />

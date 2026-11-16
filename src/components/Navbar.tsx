@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, X, Download, Video, Home, PhoneCall, User } from "lucide-react";
+import { LogOut, Menu, X, Download, Video, Home, PhoneCall, User, Sun, Moon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileMenu from "@/components/ProfileMenu";
+import { useTheme } from "@/hooks/useTheme";
 
 interface NavbarProps {
   user?: any;
@@ -16,6 +17,7 @@ const Navbar = ({ user: propUser, drawerOpen, setDrawerOpen }: NavbarProps) => {
   const location = useLocation();
   const [internalUser, setInternalUser] = useState<any>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   // Use passed-in user or fetch if not provided
   const user = propUser !== undefined ? propUser : internalUser;
@@ -56,11 +58,10 @@ const Navbar = ({ user: propUser, drawerOpen, setDrawerOpen }: NavbarProps) => {
         <div className="hidden md:flex items-center gap-6 text-sm font-medium">
           <button
             onClick={() => navigate("/landing")}
-            className={`transition-colors flex items-center gap-1.5 ${
-              isActive("/landing") || isActive("/")
-                ? "text-primary font-semibold border-b-2 border-primary pb-0.5"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`transition-colors flex items-center gap-1.5 ${isActive("/landing") || isActive("/")
+              ? "text-primary font-semibold border-b-2 border-primary pb-0.5"
+              : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             <Home className="w-4 h-4" />
             Home
@@ -68,32 +69,45 @@ const Navbar = ({ user: propUser, drawerOpen, setDrawerOpen }: NavbarProps) => {
 
           <button
             onClick={() => (user ? navigate("/rooms") : navigate("/auth"))}
-            className={`transition-colors flex items-center gap-1.5 ${
-              isActive("/rooms")
-                ? "text-primary font-semibold border-b-2 border-primary pb-0.5"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`transition-colors flex items-center gap-1.5 ${isActive("/rooms")
+              ? "text-primary font-semibold border-b-2 border-primary pb-0.5"
+              : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             <Video className="w-4 h-4" />
             Rooms
           </button>
 
-          <a
-            href="/PrimeTalker-User-Guide.html"
-            download="PrimeTalker-User-Guide.html"
+          {/* Profile Navigation Link */}
+          {user && (
+            <button
+              onClick={() => navigate("/profile")}
+              className={`transition-colors flex items-center gap-1.5 ${isActive("/profile")
+                ? "text-primary font-semibold border-b-2 border-primary pb-0.5"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
+            >
+              <User className="w-4 h-4" />
+              Profile
+            </button>
+          )}
+
+
+          <button
+            onClick={() => navigate("/user-guide")}
             className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
           >
             <Download className="w-4 h-4" />
             User Guide
-          </a>
+          </button>
+
 
           <button
             onClick={() => navigate("/contact")}
-            className={`transition-colors flex items-center gap-1.5 ${
-              isActive("/contact")
-                ? "text-primary font-semibold border-b-2 border-primary pb-0.5"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`transition-colors flex items-center gap-1.5 ${isActive("/contact")
+              ? "text-primary font-semibold border-b-2 border-primary pb-0.5"
+              : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             <PhoneCall className="w-4 h-4" />
             Contact Us
@@ -102,6 +116,18 @@ const Navbar = ({ user: propUser, drawerOpen, setDrawerOpen }: NavbarProps) => {
 
         {/* RIGHT - AUTH / USER CONTROLS (DESKTOP) */}
         <div className="hidden md:flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={toggleTheme}
+            aria-label="Toggle light and dark mode"
+            className="h-9 rounded-full border-border bg-background/80 px-3 text-sm font-medium"
+          >
+            <span className="flex items-center gap-2">
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {theme === "dark" ? "Light" : "Dark"}
+            </span>
+          </Button>
+
           {user ? (
             <div className="flex items-center gap-3">
               {setDrawerOpen && (
@@ -145,6 +171,18 @@ const Navbar = ({ user: propUser, drawerOpen, setDrawerOpen }: NavbarProps) => {
 
         {/* MOBILE MENU TOGGLE BUTTON */}
         <div className="flex md:hidden items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={toggleTheme}
+            aria-label="Toggle light and dark mode"
+            className="h-9 rounded-full border-border bg-background/80 px-3 text-sm font-medium"
+          >
+            <span className="flex items-center gap-2">
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {theme === "dark" ? "Light" : "Dark"}
+            </span>
+          </Button>
+
           {user && setDrawerOpen && (
             <ProfileMenu
               user={user}
@@ -171,11 +209,10 @@ const Navbar = ({ user: propUser, drawerOpen, setDrawerOpen }: NavbarProps) => {
               setMobileMenuOpen(false);
               navigate("/landing");
             }}
-            className={`w-full text-left py-2 px-3 rounded-md text-base font-medium flex items-center gap-2 ${
-              isActive("/landing") || isActive("/")
-                ? "bg-primary/10 text-primary font-semibold"
-                : "text-foreground hover:bg-accent"
-            }`}
+            className={`w-full text-left py-2 px-3 rounded-md text-base font-medium flex items-center gap-2 ${isActive("/landing") || isActive("/")
+              ? "bg-primary/10 text-primary font-semibold"
+              : "text-foreground hover:bg-accent"
+              }`}
           >
             <Home className="w-5 h-5 text-primary" />
             Home
@@ -186,15 +223,31 @@ const Navbar = ({ user: propUser, drawerOpen, setDrawerOpen }: NavbarProps) => {
               setMobileMenuOpen(false);
               user ? navigate("/rooms") : navigate("/auth");
             }}
-            className={`w-full text-left py-2 px-3 rounded-md text-base font-medium flex items-center gap-2 ${
-              isActive("/rooms")
-                ? "bg-primary/10 text-primary font-semibold"
-                : "text-foreground hover:bg-accent"
-            }`}
+            className={`w-full text-left py-2 px-3 rounded-md text-base font-medium flex items-center gap-2 ${isActive("/rooms")
+              ? "bg-primary/10 text-primary font-semibold"
+              : "text-foreground hover:bg-accent"
+              }`}
           >
             <Video className="w-5 h-5 text-primary" />
             Rooms
           </button>
+
+          {/* Profile Navigation Link - Mobile */}
+          {user && (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                navigate("/profile");
+              }}
+              className={`w-full text-left py-2 px-3 rounded-md text-base font-medium flex items-center gap-2 ${isActive("/profile")
+                ? "bg-primary/10 text-primary font-semibold"
+                : "text-foreground hover:bg-accent"
+                }`}
+            >
+              <User className="w-5 h-5 text-primary" />
+              Profile
+            </button>
+          )}
 
           <a
             href="/PrimeTalker-User-Guide.html"
@@ -211,11 +264,10 @@ const Navbar = ({ user: propUser, drawerOpen, setDrawerOpen }: NavbarProps) => {
               setMobileMenuOpen(false);
               navigate("/contact");
             }}
-            className={`w-full text-left py-2 px-3 rounded-md text-base font-medium flex items-center gap-2 ${
-              isActive("/contact")
-                ? "bg-primary/10 text-primary font-semibold"
-                : "text-foreground hover:bg-accent"
-            }`}
+            className={`w-full text-left py-2 px-3 rounded-md text-base font-medium flex items-center gap-2 ${isActive("/contact")
+              ? "bg-primary/10 text-primary font-semibold"
+              : "text-foreground hover:bg-accent"
+              }`}
           >
             <PhoneCall className="w-5 h-5 text-primary" />
             Contact Us
